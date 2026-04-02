@@ -9,6 +9,9 @@ const emptyForm = {
   size: '',
   price: '',
   discount: '0',
+  stock: '100',
+  unit: 'kg',
+  customUnit: '',
   image: '',
 };
 
@@ -59,6 +62,8 @@ const ProductManager = () => {
         size: form.size.trim() || '',
         price: Number(form.price) || 0,
         discount: Number(form.discount) || 0,
+        stock: Number(form.stock) || 100,
+        unit: form.customUnit ? form.customUnit.trim() : form.unit || 'kg',
         image: imageUrl || form.image || '',
       };
 
@@ -89,6 +94,9 @@ const ProductManager = () => {
       size: product.size || '',
       price: product.price,
       discount: product.discount,
+      stock: product.stock?.toString() || '100',
+      unit: product.unit || 'kg',
+      customUnit: '',
       image: product.image,
     });
     setPreview(product.image);
@@ -160,11 +168,36 @@ const ProductManager = () => {
               placeholder="Discount %"
               className="h-11 w-full rounded-2xl border border-slate-200 px-4 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
             />
+            <input
+              type="number"
+              value={form.stock}
+              onChange={(event) => setForm({ ...form, stock: event.target.value })}
+              placeholder="Stock"
+              min="0"
+              className="h-11 w-full rounded-2xl border border-slate-200 px-4 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+            />
           </div>
+
+          <select
+            value={form.unit}
+            onChange={(event) => setForm({ ...form, unit: event.target.value })}
+            className="h-11 w-full rounded-2xl border border-slate-200 px-4 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+          >
+            <option value="kg">kg</option>
+            <option value="litre">litre</option>
+            <option value="piece">piece</option>
+          </select>
+          <input
+            value={form.customUnit}
+            onChange={(event) => setForm({ ...form, customUnit: event.target.value })}
+            placeholder="Custom unit (optional)"
+            className="h-11 w-full rounded-2xl border border-slate-200 px-4 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+          />
 
           <input
             type="file"
             accept="image/*"
+            capture="environment"
             onChange={(event) => {
               const selected = event.target.files?.[0];
               if (!selected) return;

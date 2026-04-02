@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronDown, Moon, ShoppingCart, Sun } from 'lucide-react';
 import { useCartStore } from '../../store/cartStore.js';
+import useLogoStore from '../../store/logoStore.js';
 import useCurrentUser from '../../hooks/useCurrentUser.js';
 import { clearCurrentUser } from '../../lib/auth.js';
 import { useTheme } from '../../context/ThemeContext.jsx';
@@ -11,10 +12,16 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { cart } = useCartStore();
   const { user } = useCurrentUser();
+  const logoStore = useLogoStore();
+  const { logo } = logoStore;
   const { isDark, toggleTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   // ui state
+
+  useEffect(() => {
+    logoStore.fetchLogo();
+  }, []);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -44,8 +51,14 @@ const Navbar = () => {
   return (
     <nav className="sticky top-0 z-50 bg-white/70 py-3 shadow-sm backdrop-blur dark:bg-slate-950/70">
       <div className="container-fixed flex flex-wrap items-center gap-3">
-        <Link to="/" className="text-lg font-bold text-green-700 dark:text-green-400">
-          Aman-Store
+        <Link to="/" className="flex items-center gap-2">
+          <img 
+            src={logo} 
+            alt="Aman Store" 
+            className="h-8 w-auto object-contain"
+            onError={(e) => e.currentTarget.src = '/favicon.svg'}
+          />
+          <span className="text-lg font-bold text-green-700 dark:text-green-400 hidden md:inline">Store</span>
         </Link>
 
         <div className="order-3 w-full md:order-none md:flex-1">

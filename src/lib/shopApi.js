@@ -100,6 +100,8 @@ const normalizeProduct = (item = {}) => {
     discount,
     image,
     category,
+    stock: Number(item.stock) || 100,
+    unit: item.unit || 'kg',
   };
 };
 
@@ -118,6 +120,8 @@ const buildSupabaseProductRow = (payload = {}) => {
     final_price: finalPrice,
     pack_size: payload.size || payload.pack_size || '',
     tag: payload.tag || 'trending',
+    stock: Number(payload.stock) || 100,
+    unit: payload.unit || 'kg',
     created_at: payload.created_at || new Date().toISOString(),
   };
 };
@@ -165,6 +169,8 @@ const fileToDataUrl = (file) =>
     reader.readAsDataURL(file);
   });
 
+/* 
+  DISABLED: OpenFoodFacts external API (for future reuse)
 const fetchOpenFoodFactsProducts = async () => {
   try {
     const response = await fetch(
@@ -191,6 +197,7 @@ const fetchOpenFoodFactsProducts = async () => {
     return [];
   }
 };
+*/
 // Open Food Facts fallback
 
 export const uploadImage = async (file, bucket = 'product-images') => {
@@ -212,24 +219,31 @@ export const productApi = {
   getAll: async () => {
     if (useSupabase && supabase) {
       const supabaseResponse = await safeSupabase(() => supabase.from('products').select('*').order('created_at', { ascending: false }));
+      console.log('Supabase products response:', supabaseResponse);
       const data = supabaseResponse?.data;
       const error = supabaseResponse?.error;
       if (!error && data?.length) {
-        return data.map(normalizeProduct);
+        const products = data.map(normalizeProduct);
+        console.log('Loaded', products.length, 'products from Supabase:', products);
+        return products;
       }
     }
 
     const stored = readLocal(PRODUCT_KEY, []);
     if (stored.length) {
+      console.log('Using LocalStorage products:', stored.length, 'items');
       return stored.map(normalizeProduct);
     }
 
+    /* DISABLED: OpenFoodFacts external API fallback
     const fallback = await fetchOpenFoodFactsProducts();
     if (fallback.length) {
       writeLocal(PRODUCT_KEY, fallback);
       return fallback;
     }
+    */
 
+    console.log('Using static fallbackProducts:', fallbackProducts.length, 'items');
     return fallbackProducts.map(normalizeProduct);
   },
   create: async (payload) => {
@@ -406,6 +420,13 @@ export const ordersApi = {
       const supabaseResponse = await safeSupabase(() => supabase.from('orders').insert([order]).select());
       const data = supabaseResponse?.data;
       if (data?.[0]) {
+        // Deduct stock for each item
+        for (const item of payload.items || []) {
+          const product = await productApi.getAll().then(products => products.find(p => p.id === item.id));
+          if (product && product.stock > 0) {
+            await productApi.update(item.id, { stock: Math.max(0, product.stock - item.quantity) });
+          }
+        }
         return normalizeOrder(data[0]);
       }
     }
@@ -474,6 +495,22 @@ export const ordersApi = {
   },
 };
 // orders
+
+export const settingsApi = {
+  getAppLogo: async () => {
+    if (useSupabase && supabase) {
+      const supabaseResponse = await safeSupabase(() => supabase.from('settings').select('app_logo').maybeSingle());
+      const data = supabaseResponse?.data;
+      return data?.app_logo || '/favicon.svg';
+    }
+    return '/favicon.svg';
+  },
+  updateAppLogo: async (url) => {
+    if (useSupabase && supabase) {
+      await safeSupabase(() => supabase.from('settings').upsert({ app_logo: url }));
+    }
+  },
+};
 
 export const usersApi = {
   getByEmail: async (email) => {

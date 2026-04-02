@@ -50,8 +50,13 @@ const Orders = () => {
           <div>
             <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Order #{order.id}</p>
             <p className="text-xs text-slate-500 dark:text-slate-400">{new Date(order.created_at).toLocaleString()}</p>
-            {(order.address || order.user_address) && (
-              <p className="text-xs text-slate-500 dark:text-slate-400">{order.address || order.user_address}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {order.delivery_address || order.address || order.user_address || 'No address'}
+            </p>
+            {order.delivery_name && (
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {order.delivery_name} • {order.delivery_phone || order.user_mobile}
+              </p>
             )}
           </div>
           <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">

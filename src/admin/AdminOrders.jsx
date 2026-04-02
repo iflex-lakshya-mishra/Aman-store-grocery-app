@@ -61,8 +61,13 @@ const AdminOrders = () => {
                 <p className="text-xs text-slate-500 dark:text-slate-400">{new Date(order.created_at).toLocaleString()}</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">{order.user_name} • {order.user_mobile}</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {order.address || order.user_address || 'Address not available'}
+                  {order.delivery_address || order.address || order.user_address || 'Address not available'}
                 </p>
+                {order.delivery_name && (
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {order.delivery_name} ({order.delivery_phone || order.user_mobile})
+                  </p>
+                )}
                 {order.user_mobile && (
                   <a href={`tel:${order.user_mobile}`} className="text-xs font-semibold text-emerald-600">
                     Call Customer

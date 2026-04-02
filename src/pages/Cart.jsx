@@ -11,6 +11,8 @@ const Cart = () => {
   const { cart, removeFromCart, updateQuantity, clearCart, getTotalPrice } = useCartStore();
   const { user } = useCurrentUser();
   const [phone, setPhone] = useState('');
+  const [deliveryName, setDeliveryName] = useState('');
+  const [deliveryAddress, setDeliveryAddress] = useState('');
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
   // data hooks
@@ -25,6 +27,7 @@ const Cart = () => {
       .replace(/\D/g, '')
       .slice(0, 10);
     setPhone(initialPhone);
+    setDeliveryName(user?.name || user?.displayName || '');
   }, [user]);
   // prefill phone
 
@@ -32,8 +35,8 @@ const Cart = () => {
     if (!cart.length || !user?.email) return;
 
     const phoneDigits = phone.replace(/\D/g, '').slice(0, 10);
-    if (phoneDigits.length !== 10) {
-      setStatus('Enter a valid 10 digit phone number.');
+    if (phoneDigits.length !== 10 || !deliveryName.trim() || !deliveryAddress.trim()) {
+      setStatus('Fill name, valid phone, and address.');
       return;
     }
 
@@ -55,6 +58,9 @@ const Cart = () => {
         subtotal,
         delivery_fee: deliveryFee,
         total_price: total,
+        delivery_name: deliveryName.trim(),
+        delivery_phone: phoneDigits,
+        delivery_address: deliveryAddress.trim(),
         user_name: user?.name || user?.displayName || '',
         user_mobile: phoneDigits,
         user_address: user?.address || '',
@@ -184,6 +190,25 @@ const Cart = () => {
                       maxLength={10}
                       placeholder="10 digit phone number"
                       className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-green-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                    />
+                  </label>
+                  <label className="mt-4 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                    Delivery Name
+                    <input
+                      value={deliveryName}
+                      onChange={(event) => setDeliveryName(event.target.value)}
+                      placeholder="Full name"
+                      className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-green-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                    />
+                  </label>
+                  <label className="mt-4 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                    Delivery Address
+                    <textarea
+                      value={deliveryAddress}
+                      onChange={(event) => setDeliveryAddress(event.target.value)}
+                      placeholder="Full address (street, landmark, city, pin)"
+                      rows="3"
+                      className="mt-2 h-auto w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-green-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 resize-none"
                     />
                   </label>
                   <button
