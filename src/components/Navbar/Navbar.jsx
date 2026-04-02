@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronDown, Moon, ShoppingCart, Sun } from 'lucide-react';
 import { useCartStore } from '../../store/cartStore.js';
@@ -13,7 +13,27 @@ const Navbar = () => {
   const { user } = useCurrentUser();
   const { isDark, toggleTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
   // ui state
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    // close dropdown on outside click
+
+    const handleOutsideClick = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('touchstart', handleOutsideClick);
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('touchstart', handleOutsideClick);
+    };
+  }, [menuOpen]);
 
   const handleLogout = async () => {
     await clearCurrentUser();
@@ -22,7 +42,7 @@ const Navbar = () => {
   // actions
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/90 py-3 shadow-sm backdrop-blur dark:bg-slate-950/90">
+    <nav className="sticky top-0 z-50 bg-white/70 py-3 shadow-sm backdrop-blur dark:bg-slate-950/70">
       <div className="container-fixed flex flex-wrap items-center gap-3">
         <Link to="/" className="text-lg font-bold text-green-700 dark:text-green-400">
           Aman-Store
@@ -70,7 +90,7 @@ const Navbar = () => {
             </Link>
           )}
 
-          <div className="relative">
+          <div ref={menuRef} className="relative">
             <button
               type="button"
               onClick={() => setMenuOpen((prev) => !prev)}
