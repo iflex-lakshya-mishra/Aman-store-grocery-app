@@ -1,16 +1,108 @@
-# React + Vite
+# 🛒 Aman Store Grocery App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern and responsive **grocery web app** built with **React** and **Tailwind CSS**, with optional backend support using **Supabase**.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 📌 Overview
 
-## React Compiler
+**Aman Store Grocery App** helps users browse grocery products, search items quickly, and manage cart actions in a clean mobile-first UI.  
+It is designed to be simple, fast, and beginner-friendly for both users and developers.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## ✨ Features
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- 🧾 Product listing with clean cards
+- 🔍 Smart search with suggestions
+- 🛍️ Add to cart functionality
+- 📱 Fully responsive UI (mobile + desktop)
+- 🌗 Dark/Light mode support
+- 👨‍💼 Admin-ready structure (if enabled)
+- ☁️ Supabase integration (if configured)
+
+---
+
+## 🧱 Tech Stack
+
+- **Frontend:** React (Vite)
+- **Styling:** Tailwind CSS
+- **Backend/DB (Optional):** Supabase
+- **State Management:** Zustand
+- **Routing:** React Router
+
+---
+
+## ⚙️ Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/iflex-lakshya-mishra/Aman-store-grocery-app.git
+   ```
+2. Go to project folder:
+   ```bash
+   cd Aman-store-grocery-app
+   ```
+3. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+---
+
+## ▶️ Usage
+
+### Start development server
+```bash
+npm run dev
+```
+
+### Build for production
+```bash
+npm run build
+```
+
+### Preview production build
+```bash
+npm run preview
+```
+
+---
+
+## 🔐 Environment Variables
+
+Create a `.env` file in the root directory and add:
+
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_ADMIN_EMAIL=admin@example.com
+VITE_STORE_PHONE=+919876543210
+VITE_STORE_EMAIL=support@amanstore.in
+```
+
+> ✅ If Supabase is not configured, the app can still run with local fallback behavior (where implemented).
+
+---
+
+## 🖼️ Screenshots
+
+> Add screenshots in this section after deployment or local testing.
+
+- Home Page (placeholder)
+- Search Suggestions (placeholder)
+- Cart Page (placeholder)
+- Mobile View (placeholder)
+
+---
+
+## 👤 Author
+
+**Lakshya Mishra**  
+GitHub: [@iflex-lakshya-mishra](https://github.com/iflex-lakshya-mishra)
+
+---
+
+## 💚 Support
+
+If you like this project, consider giving it a ⭐ on GitHub.
