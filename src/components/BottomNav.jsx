@@ -8,7 +8,7 @@ const BottomNav = () => {
 
   const navItems = [
     { to: '/', label: 'Home', icon: Home },
-    { to: '/search?q=', label: 'Search', icon: Search },
+{ to: '/search', label: 'Search', icon: Search },
     { to: '/cart', label: 'Cart', icon: ShoppingCart },
     { to: '/orders', label: 'Orders', icon: ClipboardList },
   ];

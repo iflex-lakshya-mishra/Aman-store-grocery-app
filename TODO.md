@@ -1,12 +1,26 @@
-# Inventory & Address System Upgrade
+# Fix Mobile Search Issue
 
-## Steps:
-- [x] 1. Edit shopApi.js (add stock normalization & order deduction)
-- [x] 2. Edit ProductManager.jsx (add stock input)
-- [x] 3. Edit ProductCard.jsx (stock badge & disable button)
-- [x] 4. Edit Cart.jsx (address form fields)
-- [x] 5. Edit Orders.jsx (show delivery address)
-- [x] 6. Edit AdminOrders.jsx (show delivery address)
-- [x] 7. Test functionality
+## Status: In Progress
 
-DB SQL already approved by user.
+### Step 1: Create MobileSearchPage.jsx [✅ DONE]
+Full-screen search input page for mobile at `/search`.
+
+### Step 2: Update App.jsx routes [✅ DONE]
+- `/search` → MobileSearchPage
+- `/search-results` → SearchResultsPage
+
+### Step 3: Fix BottomNav.jsx [✅ DONE]
+Change Search link from `/search?q=` to `/search`
+
+### Step 4: Update SearchBar.jsx [✅ DONE]
+Navigate to `/search-results?q=` on submit
+
+### Step 5: Update SearchResultsPage.jsx [✅ DONE]
+Already handles searchParams.get('q') correctly - minimal changes needed
+
+### Step 6: Test & Complete [✅ READY]
+- cd aman-store && npm run dev
+- Test mobile bottom nav → search input → type → results
+- Test desktop navbar search works unchanged
+
+**No UI changes - fixes routing only.**

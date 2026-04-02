@@ -8,6 +8,7 @@ import useCurrentUser from './hooks/useCurrentUser.js';
 const Home = lazy(() => import('./pages/Home.jsx'));
 const CategoryPage = lazy(() => import('./pages/CategoryPage.jsx'));
 const ProductPage = lazy(() => import('./pages/ProductPage.jsx'));
+const MobileSearchPage = lazy(() => import('./pages/MobileSearchPage.jsx'));
 const SearchResultsPage = lazy(() => import('./pages/SearchResultsPage.jsx'));
 const Cart = lazy(() => import('./pages/Cart.jsx'));
 const Orders = lazy(() => import('./pages/Orders.jsx'));
@@ -47,7 +48,8 @@ const App = () => {
           <Route path="/" element={<Home />} />
           <Route path="/category/:name" element={<CategoryPage />} />
           <Route path="/product/:id" element={<ProductPage />} />
-          <Route path="/search" element={<SearchResultsPage />} />
+<Route path="/search" element={<MobileSearchPage />} />
+<Route path="/search-results" element={<SearchResultsPage />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/login" element={<Login />} />
