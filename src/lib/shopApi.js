@@ -550,14 +550,17 @@ export const usersApi = {
     return lookupPromise;
   },
   upsert: async (payload) => {
-    if (!payload?.email) return null;
+    if (!payload?.email && !payload?.googleId) return null;
+
+    const matchField = payload.googleId ? 'googleId' : 'email';
+    const matchValue = payload[matchField];
 
     if (useSupabase && supabase) {
       const existingResponse = await safeSupabase(() =>
         supabase
           .from('users')
           .select('*')
-          .eq('email', payload.email)
+          .eq(matchField, matchValue)
           .limit(1),
       );
       const existing = existingResponse?.data;
@@ -567,17 +570,19 @@ export const usersApi = {
           supabase
             .from('users')
             .update(payload)
-            .eq('email', payload.email)
+            .eq(matchField, matchValue)
             .select(),
         );
         const data = updateResponse?.data;
         if (data?.[0]) {
+          userProfilesCache.delete(String(payload.email || '').toLowerCase());
           return data[0];
         }
       } else {
         const insertResponse = await safeSupabase(() => supabase.from('users').insert([payload]).select());
         const data = insertResponse?.data;
         if (data?.[0]) {
+          userProfilesCache.delete(String(payload.email || '').toLowerCase());
           return data[0];
         }
       }
@@ -585,13 +590,54 @@ export const usersApi = {
 
     const normalizedEmail = String(payload?.email || '').trim().toLowerCase();
     const stored = readLocal(USER_KEY, []);
-    const next = stored.filter((item) => String(item.email).trim().toLowerCase() !== normalizedEmail);
+    const next = stored.filter((item) => 
+      String(item.email).trim().toLowerCase() !== normalizedEmail &&
+      item.googleId !== payload.googleId
+    );
     const user = { id: payload.id || createId(), ...payload };
     writeLocal(USER_KEY, [user, ...next]);
     if (normalizedEmail) {
       userProfilesCache.set(normalizedEmail, user);
     }
     return user;
+  },
+
+  getByGoogleId: async (googleId) => {
+    const id = String(googleId || '').trim();
+    if (!id) return null;
+
+    const cacheKey = `google:${id}`;
+    if (userProfilesCache.has(cacheKey)) {
+      return userProfilesCache.get(cacheKey);
+    }
+
+    if (userProfilesPromiseCache.has(cacheKey)) {
+      return userProfilesPromiseCache.get(cacheKey);
+    }
+
+    const lookupPromise = (async () => {
+      if (useSupabase && supabase) {
+        const supabaseResponse = await safeSupabase(() =>
+          supabase.from('users').select('*').eq('googleId', id).limit(1),
+        );
+        const data = supabaseResponse?.data;
+        if (data?.[0]) {
+          const record = data[0];
+          userProfilesCache.set(cacheKey, record);
+          userProfilesPromiseCache.delete(cacheKey);
+          return record;
+        }
+      }
+
+      const stored = readLocal(USER_KEY, []);
+      const match = stored.find((item) => item.googleId === id) || null;
+      userProfilesCache.set(cacheKey, match);
+      userProfilesPromiseCache.delete(cacheKey);
+      return match;
+    })();
+
+    userProfilesPromiseCache.set(cacheKey, lookupPromise);
+    return lookupPromise;
   },
 };
 // users

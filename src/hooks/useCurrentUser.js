@@ -7,7 +7,12 @@ let currentUserPromise = null;
 
 const enrichUser = async (baseUser) => {
   if (!baseUser?.email) return baseUser;
-  const profile = await usersApi.getByEmail(baseUser.email);
+  let profile;
+  if (baseUser.googleId) {
+    profile = await usersApi.getByGoogleId(baseUser.googleId);
+  } else {
+    profile = await usersApi.getByEmail(baseUser.email);
+  }
   return { ...baseUser, ...(profile || {}) };
 };
 

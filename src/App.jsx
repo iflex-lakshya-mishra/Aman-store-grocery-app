@@ -18,6 +18,8 @@ const AdminProducts = lazy(() => import('./pages/AddProduct.jsx'));
 const AdminCategories = lazy(() => import('./pages/AdminCategories.jsx'));
 const AdminBanners = lazy(() => import('./pages/AdminBanners.jsx'));
 const AdminOrders = lazy(() => import('./pages/AdminOrders.jsx'));
+const AdminLogin = lazy(() => import('./pages/AdminLogin.jsx'));
+
 // lazy pages
 
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
@@ -50,9 +52,11 @@ const App = () => {
           <Route path="/product/:id" element={<ProductPage />} />
 <Route path="/search" element={<MobileSearchPage />} />
 <Route path="/search-results" element={<SearchResultsPage />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/orders" element={<Orders />} />
+          <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
+          <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
           <Route path="/login" element={<Login />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
           <Route
             path="/admin"
             element={

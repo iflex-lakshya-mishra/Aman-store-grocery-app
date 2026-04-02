@@ -31,6 +31,7 @@ const normalizeUser = (authUser) => {
     mobile: authUser.mobile || authUser.user_metadata?.mobile || authUser.phone || authUser.user_metadata?.phone || '',
     address: authUser.address || authUser.user_metadata?.address || '',
     avatarUrl: authUser.avatarUrl || authUser.user_metadata?.avatar_url || '',
+    googleId: authUser?.identities?.[0]?.identity_data?.sub || authUser.user_metadata?.google_id || authUser.user_metadata?.googleId || '',
     role: isAdminEmail(email) ? 'admin' : 'user',
   };
 };
@@ -139,6 +140,7 @@ export const signInWithPassword = async (email, password, profile = {}) => {
     name: profile.name || normalizedEmail.split('@')[0],
     phone: profile.phone || '',
     address: profile.address || '',
+    googleId: '',
   });
 
   setStoredUser(user);
@@ -172,6 +174,7 @@ export const signUpWithPassword = async (email, password, options = {}) => {
     email: normalizedEmail,
     username: normalizedEmail.split('@')[0],
     displayName: normalizedEmail.split('@')[0],
+    googleId: '',
   });
 
   setStoredUser(user);
@@ -195,6 +198,7 @@ export const signInWithGoogle = async () => {
     email: 'google.user@local.dev',
     displayName: 'Google User',
     username: 'google-user',
+    googleId: 'local-google-id',
   });
   setStoredUser(localUser);
   return { data: { user: localUser } };
