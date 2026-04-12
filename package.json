@@ -1,1 +1,29 @@
-{"name":"aman-store","private":true,"version":"0.0.0","type":"module","scripts":{"dev":"vite","build":"vite build","preview":"vite preview"},"dependencies":{"@supabase/supabase-js":"^2.100.0","@tailwindcss/vite":"^4.2.2","lucide-react":"^0.475.0","react":"^19.2.4","react-dom":"^19.2.4","react-router-dom":"^7.13.2","tailwindcss":"^4.2.2","zustand":"^5.0.12"},"devDependencies":{"@vitejs/plugin-react":"^6.0.1","vite":"^8.0.1","vite-plugin-pwa":"^1.2.0"}}
+{
+  "name": "aman-store",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.100.0",
+    "@tailwindcss/vite": "^4.2.2",
+    "lucide-react": "^0.475.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router-dom": "^7.13.2",
+    "tailwindcss": "^4.2.2",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.31.2",
+    "@vitejs/plugin-react": "^6.0.1",
+    "vite": "^8.0.1",
+    "vite-plugin-pwa": "^1.2.0",
+    "wrangler": "^4.81.1"
+  }
+}
