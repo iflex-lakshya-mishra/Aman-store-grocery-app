@@ -1,5 +1,6 @@
-﻿import { supabase } from './supabase';
+﻿import { supabase, hasSupabaseConfig } from './supabase';
 
+const useSupabase = hasSupabaseConfig;
 const normalizeProduct = (item = {}) => ({
   id: item.id,
   name: item.name,
