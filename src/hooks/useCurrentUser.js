@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { getProfile } from "../lib/auth";
 
-const ADMIN_EMAIL = "mrstark8756@gmail.com";
+const ADMIN_EMAIL = "Guptamartstationary911@gmail.com";
 
 const AUTH_BOOTSTRAP_TIMEOUT_MS = 8000;
 
