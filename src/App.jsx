@@ -5,6 +5,7 @@ import Footer from './components/Footer.jsx';
 import BottomNav from './components/BottomNav.jsx';
 import useCurrentUser from './hooks/useCurrentUser.js';
 
+const Account = lazy(() => import('./pages/Account.jsx'));
 const Home = lazy(() => import('./pages/Home.jsx'));
 const CategoryPage = lazy(() => import('./pages/CategoryPage.jsx'));
 const ProductPage = lazy(() => import('./pages/ProductPage.jsx'));
@@ -20,11 +21,8 @@ const AdminBanners = lazy(() => import('./pages/AdminBanners.jsx'));
 const AdminOrders = lazy(() => import('./pages/AdminOrders.jsx'));
 const AdminLogin = lazy(() => import('./pages/AdminLogin.jsx'));
 
-// lazy pages
-
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const { user, loading } = useCurrentUser();
-  // auth gate
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-950 dark:text-slate-200">Loading...</div>;
@@ -50,54 +48,19 @@ const App = () => {
           <Route path="/" element={<Home />} />
           <Route path="/category/:name" element={<CategoryPage />} />
           <Route path="/product/:id" element={<ProductPage />} />
-<Route path="/search" element={<MobileSearchPage />} />
-<Route path="/search-results" element={<SearchResultsPage />} />
+          <Route path="/search" element={<MobileSearchPage />} />
+          <Route path="/search-results" element={<SearchResultsPage />} />
           <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
           <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
-          <Route path="/account" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
+          <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
           <Route path="/login" element={<Login />} />
           <Route path="/admin/login" element={<AdminLogin />} />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute requireAdmin>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/products"
-            element={
-              <ProtectedRoute requireAdmin>
-                <AdminProducts />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/categories"
-            element={
-              <ProtectedRoute requireAdmin>
-                <AdminCategories />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/banners"
-            element={
-              <ProtectedRoute requireAdmin>
-                <AdminBanners />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/orders"
-            element={
-              <ProtectedRoute requireAdmin>
-                <AdminOrders />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/products" element={<ProtectedRoute requireAdmin><AdminProducts /></ProtectedRoute>} />
+          <Route path="/admin/categories" element={<ProtectedRoute requireAdmin><AdminCategories /></ProtectedRoute>} />
+          <Route path="/admin/banners" element={<ProtectedRoute requireAdmin><AdminBanners /></ProtectedRoute>} />
+          <Route path="/admin/orders" element={<ProtectedRoute requireAdmin><AdminOrders /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
@@ -106,6 +69,5 @@ const App = () => {
     </Router>
   );
 };
-// routes
 
 export default App;
