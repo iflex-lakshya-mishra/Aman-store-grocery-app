@@ -4,6 +4,7 @@ import useCurrentUser from '../hooks/useCurrentUser.js';
 
 const BottomNav = () => {
   const { user } = useCurrentUser();
+  console.log("BOTTOMNAV - user role:", user?.role);
   // user state
 
   const navItems = [

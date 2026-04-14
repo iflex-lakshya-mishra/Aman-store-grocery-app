@@ -11,7 +11,8 @@ import SearchBar from '../SearchBar.jsx';
 const Navbar = () => {
   const navigate = useNavigate();
   const { cart } = useCartStore();
-  const { user, profile } = useCurrentUser();
+  const { user, profile, loading } = useCurrentUser();
+  console.log("NAVBAR - user:", user, "role:", user?.role, "isAdmin:", user?.isAdmin);
   const logoStore = useLogoStore();
   const { logo } = logoStore;
   const { isDark, toggleTheme } = useTheme();
@@ -61,6 +62,16 @@ const Navbar = () => {
     }
   };
   // actions
+
+  if (loading) {
+    return (
+      <div className="sticky top-0 z-50 bg-white/70 py-3 shadow-sm backdrop-blur dark:bg-slate-950/70">
+        <div className="container-fixed flex items-center justify-center py-3">
+          <div className="h-8 w-32 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <nav className="sticky top-0 z-50 bg-white/70 py-3 shadow-sm backdrop-blur dark:bg-slate-950/70">

@@ -35,10 +35,11 @@ const useCurrentUser = () => {
         ...currentUser,
         role: currentUser.email?.toLowerCase() === ADMIN_EMAIL ? 'admin' : 'user'
       } : null;
+      const isAdmin = userWithRole?.role === 'admin';
       console.log("USER:", userWithRole);
       console.log("EMAIL:", userWithRole?.email);
-      console.log("IS ADMIN:", userWithRole?.role === 'admin');
-      setUser(userWithRole);
+      console.log("IS ADMIN:", isAdmin);
+      setUser({ ...userWithRole, isAdmin });
       setLoading(false);
       await setProfileForUser(currentUser?.id || null);
     };
@@ -85,11 +86,12 @@ const useCurrentUser = () => {
             ...currentUser,
             role: currentUser.email?.toLowerCase() === ADMIN_EMAIL ? 'admin' : 'user'
           } : null;
+          const isAdmin = userWithRole?.role === 'admin';
           console.log("USER:", userWithRole);
           console.log("EMAIL:", userWithRole?.email);
-          console.log("IS ADMIN:", userWithRole?.role === 'admin');
+          console.log("IS ADMIN:", isAdmin);
           setSession(null);
-          setUser(userWithRole);
+          setUser({ ...userWithRole, isAdmin });
           setLoading(false);
           await setProfileForUser(currentUser?.id || null);
         }
@@ -117,7 +119,7 @@ const useCurrentUser = () => {
     };
   }, []);
 
-  return { user, session, profile, loading };
+  return { user, session, profile, loading, isAdmin: user?.isAdmin ?? false };
 };
 
 export default useCurrentUser;
