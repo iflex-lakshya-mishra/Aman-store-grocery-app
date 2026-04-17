@@ -6,7 +6,7 @@ import {
   userProfilesCache, userProfilesPromiseCache, buildSupabaseProductRow
 } from './utils.js';
 
-// ---------- NORMALIZERS ----------
+
 
 const normalizeProduct = (item = {}) => ({
   id: item.id,
@@ -42,7 +42,7 @@ const normalizeOrder = (item = {}) => ({
   created_at: item.created_at || new Date().toISOString(),
 });
 
-// ---------- PRODUCT API ----------
+
 
 export const productApi = {
   getAll: async () => {
@@ -53,7 +53,7 @@ export const productApi = {
   },
 };
 
-// ---------- CATEGORY API ----------
+
 
 export const categoryApi = {
   getAll: async () => {
@@ -64,7 +64,6 @@ export const categoryApi = {
   },
 };
 
-// ---------- USERS API (FIXED) ----------
 
 export const usersApi = {
   getByEmail: async (email) => {
@@ -92,7 +91,7 @@ export const usersApi = {
   },
 };
 
-// ---------- ORDERS API ----------
+
 
 export const ordersApi = {
   create: async (payload) => {
