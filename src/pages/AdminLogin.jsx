@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signInWithPassword } from '../lib/auth.js';
+import { clearCurrentUser, getProfile, signInWithPassword } from '../lib/auth.js';
 import useCurrentUser from '../hooks/useCurrentUser.js';
 
 const AdminLogin = () => {
@@ -12,7 +12,7 @@ const AdminLogin = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && user) {
+    if (!loading && user?.role === 'admin') {
       navigate('/admin');
     }
   }, [loading, user, navigate]);
@@ -22,15 +22,44 @@ const AdminLogin = () => {
     setError('');
     setSubmitting(true);
 
-    const response = await signInWithPassword(email, password);
+    try {
+      const response = await signInWithPassword(email, password);
 
-    if (response.error) {
-      setError(response.error.message || 'Login failed');
+      if (response.error) {
+        console.error('[ADMIN_LOGIN] Auth error:', response.error);
+        setError(response.error.message || 'Login failed');
+        setSubmitting(false);
+        return;
+      }
+
+      const adminUser = response.data?.user || response.user || null;
+      console.log('[ADMIN_LOGIN] User logged in:', adminUser?.email);
+
+      if (!adminUser) {
+        setError('No user returned from login');
+        setSubmitting(false);
+        return;
+      }
+
+      const profile = await getProfile(adminUser.id);
+      console.log('[ADMIN_LOGIN] Profile:', profile);
+
+      if (!profile || profile.role !== 'admin') {
+        console.warn('[ADMIN_LOGIN] Not admin:', profile?.role);
+        await clearCurrentUser();
+        setError(profile ? 'Access denied - admin role required' : 'Profile not found - contact support');
+        setSubmitting(false);
+        return;
+      }
+
+      console.log('[ADMIN_LOGIN] Admin access granted, navigating...');
+      navigate('/admin');
+    } catch (err) {
+      console.error('[ADMIN_LOGIN] Unexpected error:', err);
+      setError('Login error - check console');
+    } finally {
       setSubmitting(false);
-      return;
     }
-
-    navigate('/admin');
   };
 
   return (

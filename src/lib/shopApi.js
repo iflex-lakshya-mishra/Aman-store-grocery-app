@@ -425,7 +425,11 @@ export const usersApi = {
       return userProfilesPromiseCache.get(normalizedEmail);
     }
 
+<<<<<<< Updated upstream
     const lookupPromise = (async () => {
+=======
+const lookupPromise = (async () => {
+>>>>>>> Stashed changes
       if (!supabase) {
         const stored = readLocal(USER_KEY, []);
         const match = stored.find((item) => String(item.email).trim().toLowerCase() === normalizedEmail) || null;
@@ -434,8 +438,14 @@ export const usersApi = {
         return match;
       }
 
+<<<<<<< Updated upstream
       const supabaseResponse = await safeSupabase(() =>
         supabase.from('users').select('*').eq('email', normalizedEmail).limit(1),
+=======
+      // Use 'profiles' table to match auth.js
+      const supabaseResponse = await safeSupabase(() =>
+        supabase.from('profiles').select('*').eq('email', normalizedEmail).limit(1),
+>>>>>>> Stashed changes
       );
       const data = supabaseResponse?.data;
       if (data?.[0]) {
@@ -476,9 +486,16 @@ export const usersApi = {
       return user;
     }
 
+<<<<<<< Updated upstream
     const existingResponse = await safeSupabase(() =>
       supabase
         .from('users')
+=======
+    // Use 'profiles' table to match auth.js
+    const existingResponse = await safeSupabase(() =>
+      supabase
+        .from('profiles')
+>>>>>>> Stashed changes
         .select('*')
         .eq(matchField, matchValue)
         .limit(1),

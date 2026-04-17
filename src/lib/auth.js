@@ -9,7 +9,7 @@ export const getProfile = async (userId) => {
     .from('profiles')
     .select('*')
     .eq('id', userId)
-    .single();
+    .maybeSingle();
   if (error) return null;
   return data;
 };
@@ -43,6 +43,7 @@ const normalizeUser = async (authUser) => {
     location: profile?.location || '',
     avatarUrl: authUser.user_metadata?.avatar_url || '',
     googleId: authUser?.identities?.[0]?.identity_data?.sub || authUser.user_metadata?.google_id || '',
+    role: profile?.role || 'user',
     profile,
     hasProfile: !!profile
   };
@@ -67,25 +68,48 @@ export const onAuthStateChange = (callback) => {
 export const signInWithPassword = async (email, password, profile = {}) => {
   const normalizedEmail = normalizeEmail(email);
 
+  console.log('[AUTH] signInWithPassword:', { email: normalizedEmail });
+
   if (supabase) {
     const response = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
 
     if (response.error) {
+      console.error('[AUTH] signIn error:', response.error);
       return response;
     }
 
-    const { data: persistedSessionData, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError) {
-    } 
+    console.log('[AUTH] signIn success, creating profile if needed');
+
+    // Auto-create/update profile if missing
+    const user = response.data.user;
+    const existingProfile = await getProfile(user.id);
+    if (!existingProfile) {
+      console.log('[AUTH] No profile found, creating...');
+      const profileData = {
+        id: user.id,
+        email: normalizedEmail,
+        name: user.user_metadata?.full_name || normalizedEmail.split('@')[0],
+        role: 'user', // default, admin set manually in Supabase
+        updated_at: new Date().toISOString()
+      };
+      const createResult = await createProfile(user.id, profileData);
+      if (createResult.error) {
+        console.error('[AUTH] Profile creation error:', createResult.error);
+      } else {
+        console.log('[AUTH] Profile created successfully');
+      }
+    } else {
+      console.log('[AUTH] Profile exists:', existingProfile.role);
+    }
+
+    // Verify session persists
+    const { data: sessionData } = await supabase.auth.getSession();
+    console.log('[AUTH] Session after login:', !!sessionData?.session);
 
     return response;
   }
 
-  if (!normalizedEmail || !password) {
-    return { error: { message: 'Email and password are required.' } };
-  }
-
-  throw new Error('Supabase not configured - add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
+  throw new Error('Supabase not configured');
 };
 
 export const signUpWithPassword = async (email, password, options = {}) => {

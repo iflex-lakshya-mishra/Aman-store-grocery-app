@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { getProfile } from "../lib/auth.js";
 
-const ADMIN_EMAIL = "guptamartstationary911@gmail.com";
 const AUTH_BOOTSTRAP_TIMEOUT_MS = 2000;
 
 const useCurrentUser = () => {
@@ -10,38 +9,52 @@ const useCurrentUser = () => {
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  console.log('[HOOK] useCurrentUser init');
 
   useEffect(() => {
     let isActive = true;
 
-    const setProfileForUser = async (userId) => {
-      if (!isActive) return;
-      if (!userId) { setProfile(null); return; }
-      try {
-        const prof = await getProfile(userId);
-        if (!isActive) return;
-        setProfile(prof || null);
-      } catch {
-        if (!isActive) return;
-        setProfile(null);
+    const buildUserState = async (currentUser) => {
+      if (!currentUser) {
+        return { nextUser: null, nextProfile: null };
       }
+
+      let nextProfile = null;
+      try {
+        nextProfile = await getProfile(currentUser.id);
+      } catch {
+        nextProfile = null;
+      }
+      const role = nextProfile?.role || "user";
+
+      return {
+        nextProfile,
+        nextUser: {
+          ...currentUser,
+          role,
+          isAdmin: role === "admin",
+        },
+      };
     };
 
     const applySessionState = async (nextSession) => {
       if (!isActive) return;
       const currentUser = nextSession?.user || null;
+      console.log('[HOOK] applySessionState:', { hasSession: !!nextSession, hasUser: !!currentUser?.email });
       setSession(nextSession || null);
-      const userWithRole = currentUser ? {
-        ...currentUser,
-        role: currentUser.email?.toLowerCase() === ADMIN_EMAIL ? 'admin' : 'user'
-      } : null;
-      const isAdmin = userWithRole?.role === 'admin';
-      console.log("USER:", userWithRole);
-      console.log("EMAIL:", userWithRole?.email);
-      console.log("IS ADMIN:", isAdmin);
-      setUser({ ...userWithRole, isAdmin });
+      const { nextUser, nextProfile } = await buildUserState(currentUser);
+      if (!isActive) return;
+      console.log('[HOOK] Final state:', { 
+        email: nextUser?.email, 
+        role: nextUser?.role, 
+        isAdmin: nextUser?.isAdmin,
+        profileRole: nextProfile?.role 
+      });
+      setUser(nextUser);
+      setProfile(nextProfile);
       setLoading(false);
-      await setProfileForUser(currentUser?.id || null);
     };
 
     if (!supabase) {
@@ -64,6 +77,15 @@ const useCurrentUser = () => {
 
         let activeSession = sessionData?.session || null;
 
+        if (!activeSession) {
+          const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+          if (refreshError) {
+            console.error('Refresh session error:', refreshError);
+          } else {
+            activeSession = refreshData?.session || null;
+          }
+        }
+
         if (!activeSession && typeof window !== "undefined") {
           const authCode = new URLSearchParams(window.location.search).get("code");
           if (authCode) {
@@ -82,18 +104,12 @@ const useCurrentUser = () => {
           const { data: userData, error: userError } = await supabase.auth.getUser();
           if (userError) console.error('User error:', userError);
           const currentUser = userData?.user || null;
-          const userWithRole = currentUser ? {
-            ...currentUser,
-            role: currentUser.email?.toLowerCase() === ADMIN_EMAIL ? 'admin' : 'user'
-          } : null;
-          const isAdmin = userWithRole?.role === 'admin';
-          console.log("USER:", userWithRole);
-          console.log("EMAIL:", userWithRole?.email);
-          console.log("IS ADMIN:", isAdmin);
+          const { nextUser, nextProfile } = await buildUserState(currentUser);
+          if (!isActive) return;
           setSession(null);
-          setUser({ ...userWithRole, isAdmin });
+          setUser(nextUser);
+          setProfile(nextProfile);
           setLoading(false);
-          await setProfileForUser(currentUser?.id || null);
         }
       } catch {
         if (!isActive) return;
@@ -109,6 +125,12 @@ const useCurrentUser = () => {
     initializeAuth();
 
     const { data: listener } = supabase.auth.onAuthStateChange(async (event, nextSession) => {
+      if (!nextSession && event === "SIGNED_IN") {
+        const { data: refreshData } = await supabase.auth.refreshSession();
+        await applySessionState(refreshData?.session || null);
+        return;
+      }
+
       await applySessionState(nextSession);
     });
 

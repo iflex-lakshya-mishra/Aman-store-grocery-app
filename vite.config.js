@@ -7,10 +7,12 @@ export default defineConfig({
   plugins: [react(), tailwindcss(), VitePWA({
     registerType: 'autoUpdate',
     devOptions: { enabled: true },
+    manifestFilename: 'manifest.webmanifest',
+    includeAssets: ['Applogo.png', '180.png', 'pwa-192x192.png', 'pwa-512x512.png'],
     manifest: {
-      name: 'Aman Store',
-      short_name: 'Store',
-      description: 'Kirana Grocery Store App',
+      name: 'Gupta Mart & Stationery',
+      short_name: 'Gupta Mart',
+      description: 'Gupta Mart & Stationery grocery and stationery store',
       theme_color: '#10b981',
       background_color: '#ffffff',
       display: 'standalone',
@@ -24,6 +26,12 @@ export default defineConfig({
           src: 'pwa-512x512.png',
           sizes: '512x512',
           type: 'image/png'
+        },
+        {
+          src: 'pwa-512x512.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'any maskable'
         }
       ]
     }

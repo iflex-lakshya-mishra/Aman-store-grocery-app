@@ -11,16 +11,34 @@ create table if not exists public.profiles (
   phone text,
   address text,
   location text,
+  role text default 'user',
   updated_at timestamp with time zone,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+alter table public.profiles add column if not exists role text default 'user';
+
 -- RLS policies
 alter table public.profiles enable row level security;
 
-create policy "Users can view own profile" on public.profiles for select using (auth.uid() = id);
-create policy "Users can insert own profile" on public.profiles for insert with check (auth.uid() = id);
-create policy "Users can update own profile" on public.profiles for update using (auth.uid() = id);
+drop policy if exists "Users can view own profile" on public.profiles;
+drop policy if exists "Users can insert own profile" on public.profiles;
+drop policy if exists "Users can update own profile" on public.profiles;
+drop policy if exists "read own" on public.profiles;
+drop policy if exists "insert own" on public.profiles;
+drop policy if exists "update own" on public.profiles;
+
+create policy "read own" on public.profiles for select using (auth.uid() = id);
+create policy "insert own" on public.profiles for insert with check (auth.uid() = id);
+create policy "update own" on public.profiles for update using (auth.uid() = id);
+
+update public.profiles
+set role = 'admin'
+where id = (
+  select id
+  from auth.users
+  where email = 'guptamartstationary911@gmail.com'
+);
 
 -- Indexes
 create index if not exists profiles_id_idx on public.profiles using btree (id);

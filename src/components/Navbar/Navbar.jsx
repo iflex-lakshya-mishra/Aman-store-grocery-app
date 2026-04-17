@@ -11,8 +11,7 @@ import SearchBar from '../SearchBar.jsx';
 const Navbar = () => {
   const navigate = useNavigate();
   const { cart } = useCartStore();
-  const { user, profile, loading } = useCurrentUser();
-  console.log("NAVBAR - user:", user, "role:", user?.role, "isAdmin:", user?.isAdmin);
+  const { user, loading } = useCurrentUser();
   const logoStore = useLogoStore();
   const { logo } = logoStore;
   const { isDark, toggleTheme } = useTheme();
@@ -81,7 +80,7 @@ const Navbar = () => {
             src={logo} 
             alt="Gupta Mart & Stationery" 
             className="h-10 w-auto object-contain"
-            onError={(e) => e.currentTarget.src = '/Logo/Applogo.png'}
+            onError={(e) => e.currentTarget.src = '/Applogo.png'}
           />
         </Link>
 
