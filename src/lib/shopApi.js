@@ -426,7 +426,11 @@ export const usersApi = {
     }
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     const lookupPromise = (async () => {
+=======
+const lookupPromise = (async () => {
+>>>>>>> Stashed changes
 =======
 const lookupPromise = (async () => {
 >>>>>>> Stashed changes
@@ -439,8 +443,14 @@ const lookupPromise = (async () => {
       }
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       const supabaseResponse = await safeSupabase(() =>
         supabase.from('users').select('*').eq('email', normalizedEmail).limit(1),
+=======
+      // Use 'profiles' table to match auth.js
+      const supabaseResponse = await safeSupabase(() =>
+        supabase.from('profiles').select('*').eq('email', normalizedEmail).limit(1),
+>>>>>>> Stashed changes
 =======
       // Use 'profiles' table to match auth.js
       const supabaseResponse = await safeSupabase(() =>
@@ -487,14 +497,20 @@ const lookupPromise = (async () => {
     }
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     const existingResponse = await safeSupabase(() =>
       supabase
         .from('users')
 =======
+=======
+>>>>>>> Stashed changes
     // Use 'profiles' table to match auth.js
     const existingResponse = await safeSupabase(() =>
       supabase
         .from('profiles')
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
         .select('*')
         .eq(matchField, matchValue)
