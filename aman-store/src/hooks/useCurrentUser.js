@@ -11,6 +11,14 @@ const stripOAuthHashFromUrl = () => {
   window.history.replaceState(window.history.state, "", next);
 };
 
+const withTimeout = (promise, ms, message = "timeout") =>
+  Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      setTimeout(() => reject(new Error(message)), ms);
+    }),
+  ]);
+
 const useCurrentUser = () => {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
@@ -59,7 +67,11 @@ const useCurrentUser = () => {
 
     const initializeAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await withTimeout(
+          supabase.auth.getSession(),
+          12000,
+          "getSession timeout",
+        );
         await applySessionState(session);
         if (session) stripOAuthHashFromUrl();
       } catch {

@@ -1,17 +1,16 @@
 import { supabase } from "./supabaseClient.js";
 import { usersApi } from './shopApi.js';
+import { safeSupabase } from './utils.js';
 
 const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
 
 export const getProfile = async (userId) => {
   if (!supabase || !userId) return null;
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
-    .maybeSingle();
-  if (error) return null;
-  return data;
+  const response = await safeSupabase(() =>
+    supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
+  );
+  if (response?.error) return null;
+  return response?.data ?? null;
 };
 
 export const createProfile = async (userId, profileData) => {

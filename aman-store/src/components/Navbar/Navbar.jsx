@@ -11,7 +11,7 @@ import SearchBar from '../SearchBar.jsx';
 const Navbar = () => {
   const navigate = useNavigate();
   const { cart } = useCartStore();
-  const { user, loading } = useCurrentUser();
+  const { user, loading: authLoading } = useCurrentUser();
   const logoStore = useLogoStore();
   const { logo } = logoStore;
   const { isDark, toggleTheme } = useTheme();
@@ -53,16 +53,6 @@ const Navbar = () => {
       console.error('[auth] Logout failed', error);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="sticky top-0 z-50 bg-white/70 py-3 shadow-sm backdrop-blur dark:bg-slate-950/70">
-        <div className="container-fixed flex items-center justify-center py-3">
-          <div className="h-8 w-32 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <nav className="sticky top-0 z-50 bg-white/70 py-3 shadow-sm backdrop-blur dark:bg-slate-950/70">
@@ -117,7 +107,9 @@ const Navbar = () => {
             </button>
           )}
 
-          {user ? (
+          {authLoading ? (
+            <div className="h-9 w-20 animate-pulse rounded-xl bg-slate-200 dark:bg-slate-700" aria-hidden />
+          ) : user ? (
             <button
               onClick={handleLogout}
               className="rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
