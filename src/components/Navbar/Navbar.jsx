@@ -68,7 +68,6 @@ const Navbar = () => {
     <nav className="sticky top-0 z-50 bg-white/70 py-3 shadow-sm backdrop-blur dark:bg-slate-950/70">
       <div className="container-fixed flex flex-wrap items-center gap-3">
 
-        {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
           <img
             src={logo}
@@ -78,28 +77,25 @@ const Navbar = () => {
           />
         </Link>
 
-        {/* Search — full width on mobile, flex-1 on desktop */}
         <div className="order-3 w-full md:order-0 md:flex-1">
           <SearchBar className="w-full" />
         </div>
 
-        {/* Right side buttons */}
         <div className="ml-auto flex items-center gap-2">
 
-          {/* Theme toggle — hidden on mobile */}
           <button
             type="button"
             onClick={toggleTheme}
-            className="hidden md:flex rounded-xl bg-slate-100 p-2 text-slate-700 shadow-sm dark:bg-slate-800 dark:text-slate-200"
+            className="rounded-xl bg-slate-100 p-2 text-slate-700 shadow-sm dark:bg-slate-800 dark:text-slate-200"
             aria-label="Toggle theme"
           >
             {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
 
-          {/* Cart — always visible */}
+          {/* Cart - sirf desktop pe */}
           <Link
             to="/cart"
-            className="relative rounded-xl bg-slate-100 p-2 text-slate-700 shadow-sm dark:bg-slate-800 dark:text-slate-200"
+            className="relative hidden md:inline-flex rounded-xl bg-slate-100 p-2 text-slate-700 shadow-sm dark:bg-slate-800 dark:text-slate-200"
           >
             <ShoppingCart className="h-5 w-5" />
             {cart.length > 0 && (
@@ -109,37 +105,34 @@ const Navbar = () => {
             )}
           </Link>
 
-          {/* Install App — hidden on mobile */}
           {deferredPrompt && (
             <button
               onClick={() => {
                 deferredPrompt.prompt();
                 setDeferredPrompt(null);
               }}
-              className="hidden md:flex rounded-xl bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700"
+              className="rounded-xl bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700"
             >
               Install App
             </button>
           )}
 
-          {/* Login/Logout — hidden on mobile */}
           {user ? (
             <button
               onClick={handleLogout}
-              className="hidden md:flex rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
+              className="rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
             >
               Logout
             </button>
           ) : (
             <Link
               to="/login"
-              className="hidden md:flex rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
+              className="rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
             >
               Login
             </Link>
           )}
 
-          {/* Menu dropdown */}
           <div ref={menuRef} className="relative">
             <button
               type="button"
@@ -164,21 +157,6 @@ const Navbar = () => {
                 <Link to="/account" onClick={() => setMenuOpen(false)} className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">
                   Account
                 </Link>
-                {/* Login/Logout in menu on mobile */}
-                <div className="md:hidden">
-                  {user ? (
-                    <button
-                      onClick={() => { handleLogout(); setMenuOpen(false); }}
-                      className="w-full text-left rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-slate-100 dark:hover:bg-slate-800"
-                    >
-                      Logout
-                    </button>
-                  ) : (
-                    <Link to="/login" onClick={() => setMenuOpen(false)} className="block rounded-lg px-3 py-2 text-sm text-green-600 hover:bg-slate-100 dark:hover:bg-slate-800">
-                      Login
-                    </Link>
-                  )}
-                </div>
                 {user?.role === 'admin' && (
                   <Link to="/admin" onClick={() => setMenuOpen(false)} className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">
                     Admin
