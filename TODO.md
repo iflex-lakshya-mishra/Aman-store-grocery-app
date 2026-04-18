@@ -1,11 +1,17 @@
-# TODO.md - BLACKBOXAI Fix Plan for Auth/Profile Issues
+# BLACKBOXAI Task Progress: Categories Policy & Storage Fixes
 
-## Steps:
+Status: In Progress
 
-- [ ] Step 1: Edit src/lib/shopApi.js - Add import { hasSupabaseConfig } from './supabaseClient.js'; and const useSupabase = hasSupabaseConfig; after imports
-- [x] Step 1: Edit src/lib/shopApi.js - Add import { hasSupabaseConfig } from './supabaseClient.js'; and const useSupabase = hasSupabaseConfig; after imports
-- [x] Step 2: Edit src/pages/Account.jsx - Load form from useCurrentUser() hook data (user/profile), save to both Supabase profiles table and localStorage
-- [ ] Step 3: Add RLS policies to profiles table in Supabase dashboard (SQL provided)
-- [ ] Step 4: Test - cd aman-store && npm run dev, login, go to /account, save profile, check no 406 errors
+## Approved Plan Steps:
+- [x] Step 1: Create TODO.md ✅
+- [x] Step 2: Update supabase-schema.sql with categories table + RLS policies ✅
+- [x] Step 3: Add storage.objects policies (SQL comments for user) ✅
+- [x] Step 4: User runs SQL in Supabase dashboard ✅
+- [ ] Step 5: Test categories fetch on Home page (`npm run dev`)
+- [ ] Step 6: Test admin category upload/create
+- [ ] Step 7: Verify session persistence (login/refresh)
+- [ ] Step 8: Re-test APIs, attempt_completion
 
-**Progress: Completed Step 1 (shopApi.js). Step 2 Account.jsx partially edited (hook destructure, useEffect, handleSave). Finalizing loading + Supabase upsert. Then Step 3.**
+**Next**: Run `npm run dev` in aman-store → Test Step 5-8 (Home categories, admin upload, session refresh/login).
+
+**Notes**: No frontend code changes. Session already persists (persistSession: true).
