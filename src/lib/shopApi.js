@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from './supabaseClient.js';
 import { hasSupabaseConfig } from './supabaseClient.js';
 import {
   createId, readLocal, writeLocal, safeSupabase,
