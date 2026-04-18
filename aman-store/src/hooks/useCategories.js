@@ -4,13 +4,21 @@ import { categoryApi } from '../lib/shopApi.js';
 const useCategories = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   // state
 
   const refresh = useCallback(async () => {
-    setLoading(true);
-    const data = await categoryApi.getAll();
-    setCategories(data || []);
-    setLoading(false);
+    try {
+      setLoading(true);
+      setError('');
+      const data = await categoryApi.getAll();
+      setCategories(data || []);
+    } catch (err) {
+      setError(err?.message || 'Failed to load categories');
+      setCategories([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
   // actions
 
@@ -18,7 +26,7 @@ const useCategories = () => {
     refresh();
   }, [refresh]);
 
-  return { categories, loading, refresh };
+  return { categories, loading, error, refresh };
 };
 // hook
 

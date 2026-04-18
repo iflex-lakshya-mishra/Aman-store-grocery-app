@@ -6,7 +6,13 @@ import './index.css';
 
 import { registerSW } from 'virtual:pwa-register';
 
-registerSW({ immediate: true });
+const updateSW = registerSW({
+  immediate: true,
+  onNeedRefresh() {
+    updateSW(true);
+    window.location.reload();
+  },
+});
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

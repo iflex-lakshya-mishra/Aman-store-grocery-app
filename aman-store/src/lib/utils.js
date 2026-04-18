@@ -16,9 +16,21 @@ export const writeLocal = (key, value) => {
   } catch {}
 };
 
+const withTimeout = async (promise, ms, message = 'Request timed out') => {
+  let timeoutId;
+  const timeout = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(message)), ms);
+  });
+  try {
+    return await Promise.race([promise, timeout]);
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
+
 export const safeSupabase = async (fn) => {
   try {
-    return await fn();
+    return await withTimeout(Promise.resolve().then(fn), 8000, 'Supabase request timed out');
   } catch (error) {
     console.error('Supabase error:', error);
     return { data: null, error };
