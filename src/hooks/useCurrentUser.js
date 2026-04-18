@@ -57,21 +57,29 @@ const useCurrentUser = () => {
         const { data: sessionData } = await supabase.auth.getSession();
         let activeSession = sessionData?.session || null;
 
+        // Token expire hone wala ho toh refresh karo
+        if (activeSession) {
+          const now = Math.floor(Date.now() / 1000);
+          if (activeSession.expires_at - now < 300) {
+            const { data: refreshData } = await supabase.auth.refreshSession();
+            activeSession = refreshData?.session || activeSession;
+          }
+          await applySessionState(activeSession);
+          clearTimeout(loadingTimeoutId);
+          return;
+        }
+
+        // Agar session nahi hai toh refresh try karo
+        const { data: refreshData } = await supabase.auth.refreshSession();
+        activeSession = refreshData?.session || null;
+
         if (activeSession) {
           await applySessionState(activeSession);
           clearTimeout(loadingTimeoutId);
           return;
         }
 
-        if (typeof window !== "undefined") {
-          const authCode = new URLSearchParams(window.location.search).get("code");
-          if (authCode) {
-            const { data: exchangeData } = await supabase.auth.exchangeCodeForSession(authCode);
-            activeSession = exchangeData?.session || null;
-          }
-        }
-
-        await applySessionState(activeSession);
+        await applySessionState(null);
       } catch {
         if (!isActive) return;
         setSession(null);
@@ -86,7 +94,11 @@ const useCurrentUser = () => {
     initializeAuth();
 
     const { data: listener } = supabase.auth.onAuthStateChange(async (event, nextSession) => {
-      await applySessionState(nextSession);
+      if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
+        await applySessionState(nextSession);
+      } else if (event === 'SIGNED_OUT') {
+        await applySessionState(null);
+      }
     });
 
     return () => {
