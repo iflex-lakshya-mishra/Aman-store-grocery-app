@@ -59,10 +59,36 @@ export const fallbackProducts = [
 export const userProfilesCache = new Map();
 export const userProfilesPromiseCache = new Map();
 
-export const buildSupabaseProductRow = (payload) => ({
-  ...payload,
-  pack_size: payload.size,
-  original_price: payload.price,
-  discount_percent: payload.discount,
-  image_url: payload.image,
+export const buildSupabaseProductRow = (payload = {}) => ({
+  name: payload.name ?? '',
+  category: payload.category ?? 'General',
+  pack_size: payload.pack_size ?? payload.size ?? '',
+  original_price: Number(payload.original_price ?? payload.price) || 0,
+  discount_percent: Number(payload.discount_percent ?? payload.discount) || 0,
+  stock: Number(payload.stock) || 0,
+  unit: payload.unit ?? 'kg',
+  image_url: payload.image_url ?? payload.image ?? '',
 });
+
+export const buildSupabaseProductPatch = (updates = {}) => {
+  const patch = {};
+
+  if (Object.prototype.hasOwnProperty.call(updates, 'name')) patch.name = updates.name ?? '';
+  if (Object.prototype.hasOwnProperty.call(updates, 'category')) patch.category = updates.category ?? 'General';
+  if (Object.prototype.hasOwnProperty.call(updates, 'pack_size') || Object.prototype.hasOwnProperty.call(updates, 'size')) {
+    patch.pack_size = updates.pack_size ?? updates.size ?? '';
+  }
+  if (Object.prototype.hasOwnProperty.call(updates, 'original_price') || Object.prototype.hasOwnProperty.call(updates, 'price')) {
+    patch.original_price = Number(updates.original_price ?? updates.price) || 0;
+  }
+  if (Object.prototype.hasOwnProperty.call(updates, 'discount_percent') || Object.prototype.hasOwnProperty.call(updates, 'discount')) {
+    patch.discount_percent = Number(updates.discount_percent ?? updates.discount) || 0;
+  }
+  if (Object.prototype.hasOwnProperty.call(updates, 'stock')) patch.stock = Number(updates.stock) || 0;
+  if (Object.prototype.hasOwnProperty.call(updates, 'unit')) patch.unit = updates.unit ?? 'kg';
+  if (Object.prototype.hasOwnProperty.call(updates, 'image_url') || Object.prototype.hasOwnProperty.call(updates, 'image')) {
+    patch.image_url = updates.image_url ?? updates.image ?? '';
+  }
+
+  return patch;
+};

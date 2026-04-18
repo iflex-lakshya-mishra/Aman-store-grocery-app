@@ -4,7 +4,7 @@ import {
   createId, readLocal, writeLocal, safeSupabase,
   PRODUCT_KEY, CATEGORY_KEY, BANNER_KEY, ORDER_KEY, USER_KEY,
   defaultCategories, defaultBanners, fallbackProducts,
-  userProfilesCache, userProfilesPromiseCache, buildSupabaseProductRow
+  userProfilesCache, userProfilesPromiseCache, buildSupabaseProductRow, buildSupabaseProductPatch
 } from './utils.js';
 
 const useSupabase = hasSupabaseConfig;
@@ -107,7 +107,8 @@ export const productApi = {
       writeLocal(PRODUCT_KEY, next);
       return normalized;
     }
-    const response = await safeSupabase(() => supabase.from('products').update(merged).eq('id', id).select());
+    const patch = buildSupabaseProductPatch(updates);
+    const response = await safeSupabase(() => supabase.from('products').update(patch).eq('id', id).select());
     return response?.data?.[0] ? normalizeProduct(response.data[0]) : normalized;
   },
   remove: async (id) => {
