@@ -1,0 +1,28 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-brand: #16a34a;
+}
+
+body {
+  @apply bg-white antialiased text-slate-900 dark:bg-slate-950 dark:text-slate-100;
+}
+
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  cursor: pointer;
+}
+
+button:disabled,
+input[type="button"]:disabled,
+input[type="submit"]:disabled,
+input[type="reset"]:disabled {
+  cursor: not-allowed;
+}
+
+.container-fixed {
+  @apply w-full px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto;
+}
