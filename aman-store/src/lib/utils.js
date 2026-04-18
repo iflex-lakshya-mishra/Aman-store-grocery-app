@@ -30,7 +30,7 @@ const withTimeout = async (promise, ms, message = 'Request timed out') => {
 
 export const safeSupabase = async (fn) => {
   try {
-    return await withTimeout(Promise.resolve().then(fn), 8000, 'Supabase request timed out');
+    return await withTimeout(Promise.resolve().then(fn), 5000, 'Supabase request timed out');
   } catch (error) {
     console.error('Supabase error:', error);
     return { data: null, error };
