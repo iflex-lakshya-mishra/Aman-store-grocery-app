@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
+import { supabase } from "../lib/supabaseClient.js";
 import { getProfile } from "../lib/auth.js";
 
 const AUTH_BOOTSTRAP_TIMEOUT_MS = 3000;

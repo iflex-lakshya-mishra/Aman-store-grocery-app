@@ -1,5 +1,4 @@
-﻿import { supabase } from './supabase';
-
+﻿import { supabase } from "../lib/supabaseClient.js";
 const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
 
 
