@@ -24,6 +24,25 @@ const runDedupedListRead = (key, task) => {
   return promise;
 };
 
+/** Short-lived in-memory list cache so route changes do not re-hit Supabase for the same lists. */
+const LIST_CACHE_TTL_MS = 60_000;
+const productsListCache = { list: null, ts: 0 };
+const categoriesListCache = { list: null, ts: 0 };
+const bannersListCache = { list: null, ts: 0 };
+
+const invalidateProductsListCache = () => {
+  productsListCache.list = null;
+  productsListCache.ts = 0;
+};
+const invalidateCategoriesListCache = () => {
+  categoriesListCache.list = null;
+  categoriesListCache.ts = 0;
+};
+const invalidateBannersListCache = () => {
+  bannersListCache.list = null;
+  bannersListCache.ts = 0;
+};
+
 const normalizeProduct = (item = {}) => ({
   id: item.id,
   name: item.name,
@@ -97,10 +116,17 @@ export const productApi = {
       if (stored.length) return stored.map(normalizeProduct);
       return fallbackProducts.map(normalizeProduct);
     }
+    const now = Date.now();
+    if (productsListCache.list && now - productsListCache.ts < LIST_CACHE_TTL_MS) {
+      return productsListCache.list.slice();
+    }
     const response = await runDedupedListRead('products:list', () =>
       safeSupabase(() => supabase.from('products').select('*').order('created_at', { ascending: false })),
     );
-    return response?.data?.map(normalizeProduct) || fallbackProducts.map(normalizeProduct);
+    const list = response?.data?.map(normalizeProduct) || fallbackProducts.map(normalizeProduct);
+    productsListCache.list = list;
+    productsListCache.ts = Date.now();
+    return list.slice();
   },
   create: async (payload) => {
     const product = normalizeProduct(payload);
@@ -112,6 +138,7 @@ export const productApi = {
       return product;
     }
     const response = await safeSupabase(() => supabase.from('products').insert([supabasePayload]).select());
+    invalidateProductsListCache();
     return response?.data?.[0] ? normalizeProduct(response.data[0]) : product;
   },
   update: async (id, updates) => {
@@ -126,6 +153,7 @@ export const productApi = {
     }
     const patch = buildSupabaseProductPatch(updates);
     const response = await safeSupabase(() => supabase.from('products').update(patch).eq('id', id).select());
+    invalidateProductsListCache();
     return response?.data?.[0] ? normalizeProduct(response.data[0]) : normalized;
   },
   remove: async (id) => {
@@ -136,6 +164,7 @@ export const productApi = {
       return true;
     }
     const response = await safeSupabase(() => supabase.from('products').delete().eq('id', id));
+    invalidateProductsListCache();
     return !!response?.data;
   }
 };
@@ -148,10 +177,17 @@ export const categoryApi = {
       writeLocal(CATEGORY_KEY, defaultCategories);
       return defaultCategories;
     }
+    const now = Date.now();
+    if (categoriesListCache.list && now - categoriesListCache.ts < LIST_CACHE_TTL_MS) {
+      return categoriesListCache.list.slice();
+    }
     const response = await runDedupedListRead('categories:list', () =>
       safeSupabase(() => supabase.from('categories').select('*').order('created_at', { ascending: true })),
     );
-    return response?.data?.map(normalizeCategory) || defaultCategories;
+    const list = response?.data?.map(normalizeCategory) || defaultCategories;
+    categoriesListCache.list = list;
+    categoriesListCache.ts = Date.now();
+    return list.slice();
   },
   create: async (payload) => {
     const category = normalizeCategory(payload);
@@ -162,6 +198,7 @@ export const categoryApi = {
       return category;
     }
     const response = await safeSupabase(() => supabase.from('categories').insert([category]).select());
+    invalidateCategoriesListCache();
     return response?.data?.[0] ? normalizeCategory(response.data[0]) : category;
   },
   update: async (id, updates) => {
@@ -172,6 +209,7 @@ export const categoryApi = {
       return next.find((item) => item.id === id);
     }
     const response = await safeSupabase(() => supabase.from('categories').update(updates).eq('id', id).select());
+    invalidateCategoriesListCache();
     return response?.data?.[0] ? normalizeCategory(response.data[0]) : null;
   },
   remove: async (id) => {
@@ -182,6 +220,7 @@ export const categoryApi = {
       return true;
     }
     const response = await safeSupabase(() => supabase.from('categories').delete().eq('id', id));
+    invalidateCategoriesListCache();
     return !!response?.data;
   }
 };
@@ -194,10 +233,17 @@ export const bannerApi = {
       writeLocal(BANNER_KEY, defaultBanners);
       return defaultBanners;
     }
+    const now = Date.now();
+    if (bannersListCache.list && now - bannersListCache.ts < LIST_CACHE_TTL_MS) {
+      return bannersListCache.list.slice();
+    }
     const response = await runDedupedListRead('banners:list', () =>
       safeSupabase(() => supabase.from('banners').select('*').order('created_at', { ascending: true })),
     );
-    return response?.data?.map(normalizeBanner) || defaultBanners;
+    const list = response?.data?.map(normalizeBanner) || defaultBanners;
+    bannersListCache.list = list;
+    bannersListCache.ts = Date.now();
+    return list.slice();
   },
   create: async (payload) => {
     const banner = normalizeBanner(payload);
@@ -208,6 +254,7 @@ export const bannerApi = {
       return banner;
     }
     const response = await safeSupabase(() => supabase.from('banners').insert([banner]).select());
+    invalidateBannersListCache();
     return response?.data?.[0] ? normalizeBanner(response.data[0]) : banner;
   },
   remove: async (id) => {
@@ -218,6 +265,7 @@ export const bannerApi = {
       return true;
     }
     const response = await safeSupabase(() => supabase.from('banners').delete().eq('id', id));
+    invalidateBannersListCache();
     return !!response?.data;
   }
 };

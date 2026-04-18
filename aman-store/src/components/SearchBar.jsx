@@ -16,7 +16,6 @@ navigate(`/search-results?q=${encodeURIComponent(trimmed)}`);
   // submit handler
 
   const handleInputChange = (event) => {
-    console.log('Search input:', event.target.value);
     setQueryText(event.target.value);
   };
 
@@ -26,7 +25,6 @@ navigate(`/search-results?q=${encodeURIComponent(trimmed)}`);
         type="text"
         value={queryText}
         onChange={handleInputChange}
-        onInput={handleInputChange}
         placeholder="Search groceries, snacks, masala..."
         className="h-11 w-full rounded-xl bg-slate-100 px-4 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-green-100 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:ring-green-900/40"
       />

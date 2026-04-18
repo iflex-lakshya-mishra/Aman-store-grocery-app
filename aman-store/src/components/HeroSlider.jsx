@@ -7,7 +7,7 @@ const slides = [
     title: 'Fresh daily groceries',
     subtitle: 'Quick kirana delivery at your doorstep.',
     image:
-      'https://images.unsplash.com/photo-1506617420156-8e4536971650?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1506617420156-8e4536971650?auto=format&fit=crop&w=960&q=70',
     query: 'fresh',
   },
   {
@@ -15,7 +15,7 @@ const slides = [
     title: 'Essentials at better prices',
     subtitle: 'Smart pantry shopping with clean discounts.',
     image:
-      'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=960&q=70',
     query: 'discount',
   },
   {
@@ -23,7 +23,7 @@ const slides = [
     title: 'Snacks and staples',
     subtitle: 'From daily needs to favorite treats.',
     image:
-      'https://images.unsplash.com/photo-1579113800032-c38bd7635818?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1579113800032-c38bd7635818?auto=format&fit=crop&w=960&q=70',
     query: 'snacks',
   },
 ];
@@ -50,6 +50,8 @@ const HeroSlider = () => {
           src={activeSlide.image}
           alt={activeSlide.title}
           className="h-56 w-full object-cover sm:h-64 lg:h-72"
+          decoding="async"
+          fetchPriority="high"
         />
 
         <div className="absolute inset-0 bg-linear-to-r from-black/60 via-black/25 to-transparent" />

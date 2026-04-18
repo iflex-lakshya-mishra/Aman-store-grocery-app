@@ -1,6 +1,7 @@
 ﻿import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { getItemPrice } from '../lib/pricing.js';
+import { useToastStore } from './toastStore.js';
 
 const CART_STORE_VERSION = 1;
 
@@ -53,10 +54,12 @@ export const useCartStore = create(
                 : item,
             ),
           });
+          useToastStore.getState().show(`${normalized.name || 'Item'} — quantity updated`);
           return;
         }
 
         set({ cart: [...cart, normalized] });
+        useToastStore.getState().show(`${normalized.name || 'Item'} added to cart`);
       },
       // add item
 

@@ -18,6 +18,7 @@ const ProductCard = memo(({ product, onAdd }) => {
             alt={product.name}
             className="h-32 w-full object-cover sm:h-36"
             loading="lazy"
+            decoding="async"
             onError={(event) => {
               event.currentTarget.onerror = null;
               event.currentTarget.src = FALLBACK_IMAGE;

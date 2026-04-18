@@ -3,6 +3,10 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Navbar from './components/Navbar/Navbar.jsx';
 import Footer from './components/Footer.jsx';
 import BottomNav from './components/BottomNav.jsx';
+import DocumentHead from './components/DocumentHead.jsx';
+import ToastHost from './components/ToastHost.jsx';
+import RouteLoadingBar from './components/RouteLoadingBar.jsx';
+import ErrorBoundary from './components/ErrorBoundary.jsx';
 import useCurrentUser from './hooks/useCurrentUser.js';
 
 const Account = lazy(() => import('./pages/Account.jsx'));
@@ -22,8 +26,8 @@ const AdminOrders = lazy(() => import('./pages/AdminOrders.jsx'));
 const AdminLogin = lazy(() => import('./pages/AdminLogin.jsx'));
 
 const LoadingScreen = () => (
-  <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-950 dark:text-slate-200">
-    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500" />
+  <div className="flex min-h-[40vh] items-center justify-center bg-white dark:bg-slate-950 dark:text-slate-200">
+    <div className="h-8 w-8 animate-spin rounded-full border-2 border-green-500 border-t-transparent" />
   </div>
 );
 
@@ -39,30 +43,41 @@ const App = () => {
 
   return (
     <Router>
+      <DocumentHead />
       <Navbar />
-      <Suspense fallback={<LoadingScreen />}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/category/:name" element={<CategoryPage />} />
-          <Route path="/product/:id" element={<ProductPage />} />
-          <Route path="/search" element={<MobileSearchPage />} />
-          <Route path="/search-results" element={<SearchResultsPage />} />
-          <Route path="/cart" element={<ProtectedRoute user={user} loading={loading}><Cart /></ProtectedRoute>} />
-          <Route path="/orders" element={<ProtectedRoute user={user} loading={loading}><Orders /></ProtectedRoute>} />
-          <Route path="/dashboard" element={<ProtectedRoute user={user} loading={loading}><Orders /></ProtectedRoute>} />
-          <Route path="/account" element={<ProtectedRoute user={user} loading={loading}><Account /></ProtectedRoute>} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin" element={<ProtectedRoute user={user} loading={loading} requireAdmin><AdminDashboard /></ProtectedRoute>} />
-          <Route path="/admin/products" element={<ProtectedRoute user={user} loading={loading} requireAdmin><AdminProducts /></ProtectedRoute>} />
-          <Route path="/admin/categories" element={<ProtectedRoute user={user} loading={loading} requireAdmin><AdminCategories /></ProtectedRoute>} />
-          <Route path="/admin/banners" element={<ProtectedRoute user={user} loading={loading} requireAdmin><AdminBanners /></ProtectedRoute>} />
-          <Route path="/admin/orders" element={<ProtectedRoute user={user} loading={loading} requireAdmin><AdminOrders /></ProtectedRoute>} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Suspense>
+      <ErrorBoundary>
+        <Suspense
+          fallback={
+            <>
+              <RouteLoadingBar />
+              <LoadingScreen />
+            </>
+          }
+        >
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/category/:name" element={<CategoryPage />} />
+            <Route path="/product/:id" element={<ProductPage />} />
+            <Route path="/search" element={<MobileSearchPage />} />
+            <Route path="/search-results" element={<SearchResultsPage />} />
+            <Route path="/cart" element={<ProtectedRoute user={user} loading={loading}><Cart /></ProtectedRoute>} />
+            <Route path="/orders" element={<ProtectedRoute user={user} loading={loading}><Orders /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute user={user} loading={loading}><Orders /></ProtectedRoute>} />
+            <Route path="/account" element={<ProtectedRoute user={user} loading={loading}><Account /></ProtectedRoute>} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin" element={<ProtectedRoute user={user} loading={loading} requireAdmin><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/products" element={<ProtectedRoute user={user} loading={loading} requireAdmin><AdminProducts /></ProtectedRoute>} />
+            <Route path="/admin/categories" element={<ProtectedRoute user={user} loading={loading} requireAdmin><AdminCategories /></ProtectedRoute>} />
+            <Route path="/admin/banners" element={<ProtectedRoute user={user} loading={loading} requireAdmin><AdminBanners /></ProtectedRoute>} />
+            <Route path="/admin/orders" element={<ProtectedRoute user={user} loading={loading} requireAdmin><AdminOrders /></ProtectedRoute>} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
       <Footer />
       <BottomNav />
+      <ToastHost />
     </Router>
   );
 };
