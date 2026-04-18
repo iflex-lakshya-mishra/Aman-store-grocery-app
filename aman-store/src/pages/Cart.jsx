@@ -5,25 +5,32 @@ import { ordersApi } from '../lib/shopApi.js';
 import { FALLBACK_IMAGE, getProductImage } from '../lib/imageUtils.js';
 import { getOrderLocation } from '../lib/location.js';
 import useCurrentUser from '../hooks/useCurrentUser.js';
-import { formatCurrency, getItemPrice } from '../lib/pricing.js';
+import { formatCurrency, getCartTotals, getItemPrice } from '../lib/pricing.js';
 
 const Cart = () => {
-  const { cart, removeFromCart, updateQuantity, clearCart, getTotalPrice } = useCartStore();
+  const { cart, removeFromCart, updateQuantity, clearCart } = useCartStore();
   const { user } = useCurrentUser();
   const [profile, setProfile] = useState(null);
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
+  const [validationError, setValidationError] = useState('');
   // data hooks
 
-  const subtotal = useMemo(() => getTotalPrice(), [cart, getTotalPrice]);
-  const deliveryFee = cart.length > 0 ? 20 : 0;
-  const total = subtotal + deliveryFee;
+  const deliveryFeeAmount = Number(import.meta.env.VITE_DELIVERY_FEE ?? 20);
+  const { subtotal, deliveryFee, total } = useMemo(
+    () => getCartTotals(cart, { deliveryFee: deliveryFeeAmount }),
+    [cart, deliveryFeeAmount],
+  );
   // totals
 
   const isProfileComplete = profile && 
     profile.name && profile.name.trim() && 
     profile.phone && profile.phone.replace(/\D/g, '').length === 10 && 
     profile.address && profile.address.trim();
+  const unavailableItems = useMemo(
+    () => cart.filter((item) => item.stock !== undefined && Number(item.stock) <= 0),
+    [cart],
+  );
 
   useEffect(() => {
     try {
@@ -40,15 +47,29 @@ const Cart = () => {
   }, []);
 
   const handlePlaceOrder = async () => {
-    if (!cart.length || !user?.email || !isProfileComplete) {
-      setStatus('Please update your profile');
+    setValidationError('');
+    setStatus('');
+
+    if (!cart.length) {
+      setValidationError('Your cart is empty.');
+      return;
+    }
+    if (!user?.email) {
+      setValidationError('Please login to place an order.');
+      return;
+    }
+    if (!isProfileComplete) {
+      setValidationError('Please update your profile to place orders.');
+      return;
+    }
+    if (unavailableItems.length) {
+      setValidationError('Some items are unavailable. Please remove them to continue.');
       return;
     }
 
     const phoneDigits = profile.phone.replace(/\D/g, '').slice(0, 10);
 
     setLoading(true);
-    setStatus('');
 
     try {
       const location = await getOrderLocation();
@@ -142,12 +163,18 @@ const Cart = () => {
                         >
                           +
                         </button>
+                      {item.stock !== undefined && Number(item.stock) > 0 && (
+                        <span className="text-xs text-slate-400">Max {item.stock}</span>
+                      )}
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-semibold text-green-700">
                         {formatCurrency(getItemPrice(item) * (item.quantity || 1))}
                       </p>
+                    {item.stock !== undefined && Number(item.stock) <= 0 && (
+                      <p className="mt-1 text-xs font-semibold text-red-600">Unavailable</p>
+                    )}
                       <button
                         type="button"
                         onClick={() => removeFromCart(item.id)}
@@ -187,6 +214,11 @@ const Cart = () => {
                 </Link>
               ) : (
                 <>
+                  {unavailableItems.length > 0 && (
+                    <div className="mt-6 rounded-xl bg-red-50 p-4 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-200">
+                      Some items in your cart are unavailable. Remove them to place an order.
+                    </div>
+                  )}
                   {!isProfileComplete && (
                     <div className="mt-6 rounded-xl bg-yellow-50 p-4 text-sm text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-200">
                       Please update your profile to place orders. 
@@ -196,7 +228,7 @@ const Cart = () => {
                   <button
                     type="button"
                     onClick={handlePlaceOrder}
-                    disabled={loading || !isProfileComplete}
+                    disabled={loading || !isProfileComplete || unavailableItems.length > 0}
                     className="mt-6 w-full rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700"
                   >
                     {loading ? 'Placing order...' : 'Place Order'}
@@ -204,6 +236,11 @@ const Cart = () => {
                 </>
               )}
 
+              {validationError && (
+                <p className="mt-4 text-sm text-red-600">
+                  {validationError}
+                </p>
+              )}
               {status && (
                 <p className={`mt-4 text-sm ${status.includes('successfully') || status.includes('update') ? 'text-green-600' : 'text-red-600'}`}>
                   {status}
