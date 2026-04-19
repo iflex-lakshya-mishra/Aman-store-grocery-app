@@ -38,32 +38,26 @@ const ProductCard = memo(({ product, onAdd }) => {
           {product.name}
         </Link>
         {product.size && <p className="mt-2 text-sm text-slate-500">{product.size}</p>}
-        <div className="mt-2 flex flex-wrap items-center gap-2">
+        <div className="mt-2 flex items-center gap-2">
           <p className="text-base font-bold text-green-700">
-            {formatCurrency(finalPrice)}
-            <span className="text-xs font-medium text-slate-500"> / {product.unit || 'unit'}</span>
+            {formatCurrency(finalPrice)} / {product.unit || 'unit'}
           </p>
           {hasDiscount && (
             <p className="text-xs text-slate-400 line-through">{formatCurrency(product.price)}</p>
           )}
-          {product.stock !== undefined && Number(product.stock) <= 0 && (
-            <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-700 dark:bg-red-950/50 dark:text-red-300">
-              Out of stock
-            </span>
-          )}
-          {Number(product.stock) > 0 && Number(product.stock) <= 5 && (
-            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-              Only {product.stock} left
-            </span>
+          {product.stock === 0 ? (
+            <span className="text-xs font-semibold text-red-600 bg-red-50 px-2 py-1 rounded-full">Out of Stock</span>
+          ) : (
+            <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">In Stock</span>
           )}
         </div>
         <button
           type="button"
-          disabled={Number(product.stock) <= 0}
+          disabled={product.stock <= 0 || !product.image}
           onClick={() => onAdd?.({ ...product, image: imageSrc, stock: product.stock })}
-          className="mt-3 flex min-h-[44px] w-full items-center justify-center rounded-xl bg-green-600 px-3 text-sm font-semibold text-white transition active:scale-[0.98] hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-3 rounded-xl bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Add
+          Add to Cart
         </button>
       </div>
     </div>

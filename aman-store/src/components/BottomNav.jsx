@@ -22,16 +22,16 @@ const BottomNav = () => {
     { to: ordersTo, label: 'Orders', icon: ClipboardList },
   ];
 
-  if (user?.role === 'admin') {
+  if (user?.isAdmin) {
     navItems.push({ to: '/admin', label: 'Admin', icon: Shield });
   }
   // nav items
 
-  const columns = user?.role === 'admin' ? 'grid-cols-5' : 'grid-cols-4';
+  const columns = user?.isAdmin ? 'grid-cols-5' : 'grid-cols-4';
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white md:hidden dark:border-slate-800 dark:bg-slate-950">
-      <div className={`grid ${columns} gap-2 px-4 py-2`}>
+    <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] md:hidden dark:border-slate-800 dark:bg-slate-950">
+      <div className={`grid ${columns} gap-2 px-3 py-2 sm:px-4`}>
         {navItems.map((item) => {
           const Icon = item.icon;
           const showCartBadge = item.to === '/cart' && cartItemCount > 0;

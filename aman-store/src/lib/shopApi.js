@@ -43,10 +43,6 @@ const invalidateBannersListCache = () => {
   bannersListCache.ts = 0;
 };
 
-/** Call before refetch so the next list read hits the network (e.g. Retry on Home). */
-export const bustProductsListCache = () => invalidateProductsListCache();
-export const bustCategoriesListCache = () => invalidateCategoriesListCache();
-
 const normalizeProduct = (item = {}) => ({
   id: item.id,
   name: item.name,

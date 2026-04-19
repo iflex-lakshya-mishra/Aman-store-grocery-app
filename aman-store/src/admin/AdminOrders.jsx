@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ordersApi } from '../lib/shopApi.js';
 import { formatCurrency } from '../lib/pricing.js';
 import { hasSupabaseConfig } from '../lib/supabaseClient.js';

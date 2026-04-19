@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ChevronDown, Moon, ShoppingCart, Sun } from 'lucide-react';
 import { useCartStore } from '../../store/cartStore.js';
 import useLogoStore from '../../store/logoStore.js';
@@ -10,8 +10,6 @@ import SearchBar from '../SearchBar.jsx';
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const loginHref = `/login?next=${encodeURIComponent(`${location.pathname}${location.search}`)}`;
   const { cart } = useCartStore();
   const cartItemCount = useMemo(
     () => cart.reduce((sum, item) => sum + (item.quantity || 1), 0),
@@ -55,7 +53,7 @@ const Navbar = () => {
   const handleLogout = async () => {
     try {
       await clearCurrentUser();
-      navigate('/', { replace: true });
+      navigate('/login');
     } catch (error) {
       console.error('[auth] Logout failed', error);
     }
@@ -74,8 +72,8 @@ const Navbar = () => {
           />
         </Link>
 
-        <div className="order-3 w-full md:order-0 md:flex-1">
-          <SearchBar className="w-full" />
+        <div className="order-3 min-w-0 w-full md:order-0 md:flex-1">
+          <SearchBar className="w-full min-w-0" />
         </div>
 
         <div className="ml-auto flex items-center gap-2">
@@ -126,10 +124,10 @@ const Navbar = () => {
             </button>
           ) : (
             <Link
-              to={loginHref}
+              to="/login"
               className="rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
             >
-              Log in
+              Login
             </Link>
           )}
 
@@ -144,7 +142,7 @@ const Navbar = () => {
             </button>
 
             {menuOpen && (
-              <div className="absolute right-0 top-[calc(100%+8px)] z-50 min-w-44 rounded-xl border border-slate-100 bg-white p-2 shadow-lg ring-1 ring-black/5 dark:border-slate-700 dark:bg-slate-900 dark:ring-white/10">
+              <div className="absolute right-0 top-[calc(100%+8px)] min-w-40 rounded-xl bg-white p-2 shadow-sm dark:bg-slate-900">
                 <Link to="/" onClick={() => setMenuOpen(false)} className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">
                   Home
                 </Link>
@@ -165,11 +163,18 @@ const Navbar = () => {
                 >
                   Account
                 </Link>
-                {user?.role === 'admin' && (
+                {user?.isAdmin && (
                   <Link to="/admin" onClick={() => setMenuOpen(false)} className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">
-                    Admin
+                    Admin dashboard
                   </Link>
                 )}
+                <Link
+                  to="/admin/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="block rounded-lg px-3 py-2 text-xs text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+                >
+                  Staff / admin sign-in
+                </Link>
               </div>
             )}
           </div>

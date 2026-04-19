@@ -12,7 +12,7 @@ const AdminLogin = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && user?.role === 'admin') {
+    if (!loading && user?.isAdmin) {
       navigate('/admin');
     }
   }, [loading, user, navigate]);
@@ -44,10 +44,14 @@ const AdminLogin = () => {
       const profile = await getProfile(adminUser.id);
       console.log('[ADMIN_LOGIN] Profile:', profile);
 
-      if (!profile || profile.role !== 'admin') {
+      const emailNorm = String(adminUser.email || '').trim().toLowerCase();
+      const roleNorm = String(profile?.role || '').trim().toLowerCase();
+      const isOwnerEmail = emailNorm === 'guptamartstationary911@gmail.com';
+      const isAdminRole = roleNorm === 'admin';
+      if (!profile || (!isAdminRole && !isOwnerEmail)) {
         console.warn('[ADMIN_LOGIN] Not admin:', profile?.role);
         await clearCurrentUser();
-        setError(profile ? 'Access denied - admin role required' : 'Profile not found - contact support');
+        setError(profile ? 'Access denied — admin role required on your profile' : 'Profile not found — contact support');
         setSubmitting(false);
         return;
       }

@@ -1,28 +1,23 @@
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import SearchBar from '../components/SearchBar.jsx';
 import { ArrowLeft } from 'lucide-react';
 
-const MobileSearchPage = () => {
-  const navigate = useNavigate();
+const MobileSearchPage = () => (
+  <div className="min-h-screen bg-white pb-[calc(5rem+env(safe-area-inset-bottom,0px))] dark:bg-slate-950 md:hidden">
+    <header className="sticky top-0 z-40 flex items-center gap-3 border-b border-slate-200 bg-white px-3 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+      <Link to="/" className="shrink-0 rounded-xl p-2 text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">
+        <ArrowLeft className="h-5 w-5" />
+      </Link>
+      <h1 className="min-w-0 truncate text-base font-semibold text-slate-900 dark:text-slate-100">Search</h1>
+    </header>
 
-  return (
-    <div className="min-h-screen bg-white pb-20 pt-16 dark:bg-slate-950 md:hidden">
-      {/* Back header for mobile */}
-      <div className="sticky top-0 z-40 flex items-center gap-3 bg-white px-4 py-4 shadow-sm dark:bg-slate-950 md:hidden">
-        <Link to="/" className="p-2">
-          <ArrowLeft className="h-5 w-5 text-slate-700 dark:text-slate-200" />
-        </Link>
-        <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Search Products</h1>
-      </div>
-
-      <div className="container-fixed px-4 py-8">
-        {/* Recent searches placeholder */}
-        <div className="rounded-2xl bg-slate-50 p-6 dark:bg-slate-900/50">
-          <p className="text-sm text-slate-600 dark:text-slate-400">Type to search products</p>
-        </div>
-      </div>
+    <div className="container-fixed px-3 py-4">
+      <SearchBar className="w-full" />
+      <p className="mt-4 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+        Type a few letters — suggestions appear as you type. Spelling does not need to be perfect.
+      </p>
     </div>
-  );
-};
+  </div>
+);
 
 export default MobileSearchPage;

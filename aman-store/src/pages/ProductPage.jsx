@@ -75,11 +75,10 @@ const ProductPage = () => {
             <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">Freshly packed essentials with trusted brands.</p>
             <button
               type="button"
-              disabled={Number(product.stock) <= 0}
               onClick={() => addToCart({ ...product, image: imageSrc })}
-              className="mt-6 flex min-h-[48px] w-full items-center justify-center rounded-xl bg-green-600 px-4 text-sm font-semibold text-white transition active:scale-[0.99] hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-6 w-full rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold text-white"
             >
-              {Number(product.stock) <= 0 ? 'Out of stock' : 'Add to cart'}
+              Add to Cart
             </button>
           </div>
         </div>

@@ -23,14 +23,6 @@ input[type="reset"]:disabled {
   cursor: not-allowed;
 }
 
-a:focus-visible,
-button:focus-visible,
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
-  @apply outline-none ring-2 ring-green-500/60 ring-offset-2 ring-offset-white dark:ring-offset-slate-950;
-}
-
 .container-fixed {
   @apply w-full px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto;
 }

@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { signInWithGoogle } from '../lib/auth.js';
 import useCurrentUser from '../hooks/useCurrentUser.js';

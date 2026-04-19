@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import useCurrentUser from '../hooks/useCurrentUser.js';
 import { ordersApi } from '../lib/shopApi.js';
