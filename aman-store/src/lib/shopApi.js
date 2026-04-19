@@ -43,6 +43,10 @@ const invalidateBannersListCache = () => {
   bannersListCache.ts = 0;
 };
 
+/** Call before refetch so the next list read hits the network (e.g. Retry on Home). */
+export const bustProductsListCache = () => invalidateProductsListCache();
+export const bustCategoriesListCache = () => invalidateCategoriesListCache();
+
 const normalizeProduct = (item = {}) => ({
   id: item.id,
   name: item.name,
@@ -68,8 +72,46 @@ const normalizeBanner = (item = {}) => ({
   link: item.link || '/',
 });
 
+/** Same keys as useProducts / useCategories — used when live fetch fails (avoid demo catalog). */
+const PRODUCTS_SESSION_CACHE_KEY = 'aman-store:products-cache:v1';
+const CATEGORIES_SESSION_CACHE_KEY = 'aman-store:categories-cache:v1';
+
+const readSessionProductsCache = () => {
+  try {
+    if (typeof sessionStorage === 'undefined') return [];
+    const raw = sessionStorage.getItem(PRODUCTS_SESSION_CACHE_KEY);
+    if (!raw) return [];
+    const data = JSON.parse(raw);
+    return Array.isArray(data) ? data.map((item) => normalizeProduct(item)) : [];
+  } catch {
+    return [];
+  }
+};
+
+const readSessionCategoriesCache = () => {
+  try {
+    if (typeof sessionStorage === 'undefined') return [];
+    const raw = sessionStorage.getItem(CATEGORIES_SESSION_CACHE_KEY);
+    if (!raw) return [];
+    const data = JSON.parse(raw);
+    return Array.isArray(data) ? data.map((item) => normalizeCategory(item)) : [];
+  } catch {
+    return [];
+  }
+};
+
+/** Lowercase + trim so shopper list + RLS match Google / session email. */
+const normalizeOrderEmail = (email) => String(email || '').trim().toLowerCase();
+
+/** Escape `%` and `_` for PostgREST `ilike` (exact address, case-insensitive). */
+const escapeForILike = (value) =>
+  String(value).replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+
 const normalizeOrder = (item = {}) => {
   const legacyItems = Array.isArray(item.products) ? item.products : [];
+  const userName = item.user_name || item.customerName || item.delivery_name || '';
+  const userMobile = item.user_mobile || item.customerPhone || item.delivery_phone || '';
+  const userAddress = item.user_address || item.customerAddress || item.delivery_address || '';
   return {
     id: item.id || createId(),
     status: item.status || 'pending',
@@ -77,15 +119,43 @@ const normalizeOrder = (item = {}) => {
     subtotal: Number(item.subtotal) || 0,
     delivery_fee: Number(item.delivery_fee ?? item.deliveryFee) || 0,
     total_price: Number(item.total_price ?? item.totalPrice) || 0,
-    user_name: item.user_name || item.customerName || '',
-    user_mobile: item.user_mobile || item.customerPhone || '',
-    user_address: item.user_address || item.customerAddress || '',
-    user_email: item.user_email || item.customerEmail || '',
+    user_name: userName,
+    user_mobile: userMobile,
+    user_address: userAddress,
+    user_email: normalizeOrderEmail(item.user_email || item.customerEmail || ''),
+    delivery_name: item.delivery_name || userName,
+    delivery_phone: item.delivery_phone || userMobile,
+    delivery_address: item.delivery_address || userAddress,
     lat: Number.isFinite(Number(item.lat)) ? Number(item.lat) : null,
     lng: Number.isFinite(Number(item.lng)) ? Number(item.lng) : null,
     address: item.address || item.location_address || '',
     created_at: item.created_at || new Date().toISOString(),
   };
+};
+
+/** Row sent to PostgREST — omit client id/created_at so DB defaults apply (avoids type/RLS mismatches). */
+const buildOrderInsertPayload = (normalized) => {
+  const row = {
+    status: normalized.status,
+    items: normalized.items,
+    subtotal: normalized.subtotal,
+    delivery_fee: normalized.delivery_fee,
+    total_price: normalized.total_price,
+    user_name: normalized.user_name,
+    user_mobile: normalized.user_mobile,
+    user_address: normalized.user_address,
+    user_email: normalized.user_email,
+    lat: normalized.lat,
+    lng: normalized.lng,
+    address: normalized.address,
+    delivery_name: normalized.delivery_name,
+    delivery_phone: normalized.delivery_phone,
+    delivery_address: normalized.delivery_address,
+  };
+  Object.keys(row).forEach((k) => {
+    if (row[k] === undefined) delete row[k];
+  });
+  return row;
 };
 
 const fileToDataUrl = (file) => new Promise((resolve) => {
@@ -120,13 +190,32 @@ export const productApi = {
     if (productsListCache.list && now - productsListCache.ts < LIST_CACHE_TTL_MS) {
       return productsListCache.list.slice();
     }
-    const response = await runDedupedListRead('products:list', () =>
-      safeSupabase(() => supabase.from('products').select('*').order('created_at', { ascending: false })),
-    );
-    const list = response?.data?.map(normalizeProduct) || fallbackProducts.map(normalizeProduct);
-    productsListCache.list = list;
-    productsListCache.ts = Date.now();
-    return list.slice();
+
+    const fetchProducts = () =>
+      safeSupabase(() => supabase.from('products').select('*').order('created_at', { ascending: false }));
+
+    let response = await runDedupedListRead('products:list', fetchProducts);
+    if (response?.error || !Array.isArray(response?.data)) {
+      await new Promise((r) => setTimeout(r, 400));
+      response = await fetchProducts();
+    }
+
+    const raw = response?.data;
+    const mapped = Array.isArray(raw) ? raw.map(normalizeProduct) : null;
+
+    if (mapped !== null) {
+      productsListCache.list = mapped;
+      productsListCache.ts = Date.now();
+      return mapped.slice();
+    }
+
+    const stale = readSessionProductsCache();
+    if (stale.length) return stale.slice();
+
+    const local = readLocal(PRODUCT_KEY, []);
+    if (local.length) return local.map(normalizeProduct);
+
+    return [];
   },
   create: async (payload) => {
     const product = normalizeProduct(payload);
@@ -181,13 +270,29 @@ export const categoryApi = {
     if (categoriesListCache.list && now - categoriesListCache.ts < LIST_CACHE_TTL_MS) {
       return categoriesListCache.list.slice();
     }
-    const response = await runDedupedListRead('categories:list', () =>
-      safeSupabase(() => supabase.from('categories').select('*').order('created_at', { ascending: true })),
-    );
-    const list = response?.data?.map(normalizeCategory) || defaultCategories;
-    categoriesListCache.list = list;
-    categoriesListCache.ts = Date.now();
-    return list.slice();
+
+    const fetchCategories = () =>
+      safeSupabase(() => supabase.from('categories').select('*').order('created_at', { ascending: true }));
+
+    let response = await runDedupedListRead('categories:list', fetchCategories);
+    if (response?.error || !Array.isArray(response?.data)) {
+      await new Promise((r) => setTimeout(r, 400));
+      response = await fetchCategories();
+    }
+
+    const raw = response?.data;
+    const mapped = Array.isArray(raw) ? raw.map(normalizeCategory) : null;
+
+    if (mapped !== null) {
+      categoriesListCache.list = mapped;
+      categoriesListCache.ts = Date.now();
+      return mapped.slice();
+    }
+
+    const stale = readSessionCategoriesCache();
+    if (stale.length) return stale.slice();
+
+    return defaultCategories.map(normalizeCategory);
   },
   create: async (payload) => {
     const category = normalizeCategory(payload);
@@ -279,29 +384,77 @@ export const ordersApi = {
       writeLocal(ORDER_KEY, next);
       return order;
     }
-    const response = await safeSupabase(() => supabase.from('orders').insert([order]).select());
-    if (response?.data?.[0]) {
-      // Update stock
-      for (const item of payload.items || []) {
-        const product = await productApi.getAll().then(p => p.find(p => p.id === item.id));
-        if (product?.stock > 0) {
-          await productApi.update(item.id, { stock: Math.max(0, product.stock - item.quantity) });
-        }
+    const insertPayload = buildOrderInsertPayload(order);
+    let response = await safeSupabase(() =>
+      supabase.from('orders').insert([insertPayload]).select(),
+    );
+    let row = response?.data?.[0];
+    let err = response?.error;
+    if ((err || !row) && (insertPayload.delivery_name != null || insertPayload.delivery_phone != null || insertPayload.delivery_address != null)) {
+      const minimal = { ...insertPayload };
+      delete minimal.delivery_name;
+      delete minimal.delivery_phone;
+      delete minimal.delivery_address;
+      response = await safeSupabase(() => supabase.from('orders').insert([minimal]).select());
+      row = response?.data?.[0];
+      err = response?.error;
+    }
+    // Minimal DB schema (e.g. only id, status, items, total_price, user_email): avoid silent empty table.
+    if (err || !row) {
+      const ultraMinimal = {
+        status: insertPayload.status || 'pending',
+        items: insertPayload.items ?? [],
+        total_price: insertPayload.total_price ?? 0,
+        user_email: insertPayload.user_email ?? '',
+      };
+      response = await safeSupabase(() => supabase.from('orders').insert([ultraMinimal]).select());
+      row = response?.data?.[0];
+      err = response?.error;
+    }
+    if (err || !row) {
+      const msg =
+        (err && (err.message || err.details || String(err.code))) ||
+        'Order could not be saved. Check your connection or try again.';
+      throw new Error(msg);
+    }
+    const saved = normalizeOrder(row);
+    for (const item of payload.items || []) {
+      const products = await productApi.getAll();
+      const product = products.find((p) => p.id === item.id);
+      if (product?.stock > 0) {
+        await productApi.update(item.id, { stock: Math.max(0, product.stock - item.quantity) });
       }
     }
-    return response?.data?.[0] || order;
+    return saved;
   },
   getAll: async () => {
     if (!supabase) return readLocal(ORDER_KEY, []).map(normalizeOrder);
     const response = await runDedupedListRead('orders:list', () =>
       safeSupabase(() => supabase.from('orders').select('*').order('created_at', { ascending: false })),
     );
+    if (response?.error && typeof import.meta !== 'undefined' && import.meta.env?.DEV) {
+      console.error('[ordersApi.getAll]', response.error);
+    }
     return response?.data?.map(normalizeOrder) || [];
   },
   getByEmail: async (email) => {
-    if (!email) return [];
-    if (!supabase) return readLocal(ORDER_KEY, []).filter(item => item.user_email === email).map(normalizeOrder);
-    const response = await safeSupabase(() => supabase.from('orders').select('*').eq('user_email', email).order('created_at', { ascending: false }));
+    const norm = normalizeOrderEmail(email);
+    if (!norm) return [];
+    if (!supabase) {
+      return readLocal(ORDER_KEY, [])
+        .filter((item) => normalizeOrderEmail(item.user_email) === norm)
+        .map(normalizeOrder);
+    }
+    const response = await safeSupabase(() =>
+      supabase
+        .from('orders')
+        .select('*')
+        .ilike('user_email', escapeForILike(norm))
+        .order('created_at', { ascending: false }),
+    );
+    if (response?.error && typeof import.meta !== 'undefined' && import.meta.env?.DEV) {
+      console.error('[ordersApi.getByEmail]', response.error);
+    }
     return response?.data?.map(normalizeOrder) || [];
   },
   updateStatus: async (id, status) => {
@@ -311,8 +464,20 @@ export const ordersApi = {
       writeLocal(ORDER_KEY, next);
       return next.find(item => item.id === id);
     }
-    const response = await safeSupabase(() => supabase.from('orders').update({ status }).eq('id', id).select());
-    return response?.data?.[0] ? normalizeOrder(response.data[0]) : null;
+    const response = await safeSupabase(() =>
+      supabase.from('orders').update({ status }).eq('id', id).select().maybeSingle(),
+    );
+    const err = response?.error;
+    const row = response?.data;
+    if (err) {
+      throw new Error(err.message || err.details || 'Could not update order status.');
+    }
+    if (!row) {
+      throw new Error(
+        'Order was not updated (no row returned). Usually RLS: re-run order policies from supabase-schema.sql or set profiles.role = admin.',
+      );
+    }
+    return normalizeOrder(row);
   },
   remove: async (id) => {
     if (!supabase) {
@@ -321,8 +486,16 @@ export const ordersApi = {
       writeLocal(ORDER_KEY, next);
       return true;
     }
-    const response = await safeSupabase(() => supabase.from('orders').delete().eq('id', id));
-    return !!response?.data;
+    const response = await safeSupabase(() =>
+      supabase.from('orders').delete().eq('id', id).select('id').maybeSingle(),
+    );
+    if (response?.error) {
+      throw new Error(response.error.message || response.error.details || 'Could not delete order.');
+    }
+    if (!response?.data) {
+      throw new Error('Order was not deleted (no row affected). Check admin permissions in Supabase RLS.');
+    }
+    return true;
   }
 };
 

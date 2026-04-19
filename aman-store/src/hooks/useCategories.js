@@ -1,5 +1,5 @@
-﻿import { useEffect, useState } from 'react';
-import { categoryApi } from '../lib/shopApi.js';
+﻿import { useCallback, useEffect, useState } from 'react';
+import { categoryApi, bustCategoriesListCache } from '../lib/shopApi.js';
 
 const CATEGORIES_CACHE_KEY = 'aman-store:categories-cache:v1';
 
@@ -27,13 +27,14 @@ const useCategories = () => {
   const [categories, setCategories] = useState(readCachedCategories);
   const [loading, setLoading] = useState(() => readCachedCategories().length === 0);
   const [error, setError] = useState('');
+  const [reloadTick, setReloadTick] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     const hadCache = readCachedCategories().length > 0;
 
     const run = async () => {
-      if (!hadCache) setLoading(true);
+      if (!hadCache || reloadTick > 0) setLoading(true);
       setError('');
       try {
         const data = await categoryApi.getAll();
@@ -54,9 +55,14 @@ const useCategories = () => {
     return () => {
       cancelled = true;
     };
+  }, [reloadTick]);
+
+  const refetch = useCallback(() => {
+    bustCategoriesListCache();
+    setReloadTick((n) => n + 1);
   }, []);
 
-  return { categories, loading, error };
+  return { categories, loading, error, refetch };
 };
 
 export default useCategories;

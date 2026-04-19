@@ -7,6 +7,7 @@ import { getOrderLocation } from '../lib/location.js';
 import useCurrentUser from '../hooks/useCurrentUser.js';
 import { formatCurrency, getCartTotals, getItemPrice } from '../lib/pricing.js';
 import { readStoredUserProfile } from '../lib/userProfileStorage.js';
+import { rememberPendingOrder } from '../lib/pendingOrders.js';
 
 const Cart = () => {
   const { cart, removeFromCart, updateQuantity, clearCart } = useCartStore();
@@ -68,7 +69,7 @@ const Cart = () => {
       return;
     }
     if (!isProfileComplete) {
-      setValidationError('Delivery details missing — Account page par ek baar save kar lo.');
+      setValidationError('Delivery details missing — save them once on the Account page.');
       return;
     }
     if (unavailableItems.length) {
@@ -83,7 +84,7 @@ const Cart = () => {
     try {
       const location = await getOrderLocation();
       
-      await ordersApi.create({
+      const created = await ordersApi.create({
         status: 'pending',
         items: cart.map((item) => ({
           id: item.id,
@@ -106,10 +107,17 @@ const Cart = () => {
         user_email: user?.email || '',
       });
 
+      if (created?.id) rememberPendingOrder(created.id);
       clearCart();
-      setStatus('Order placed successfully.');
-    } catch {
-      setStatus('Failed to place order. Please try again.');
+      setStatus(
+        'Order placed. It is pending until the store confirms it — you can track status under Orders.',
+      );
+    } catch (e) {
+      setStatus(
+        e instanceof Error && e.message
+          ? e.message
+          : 'Failed to place order. Please try again.',
+      );
     } finally {
       setLoading(false);
     }
@@ -130,8 +138,15 @@ const Cart = () => {
         </div>
 
         {!cart.length ? (
-          <div className="mt-10 rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center dark:border-slate-700 dark:bg-slate-900">
-            <p className="text-sm text-slate-600 dark:text-slate-300">Your cart is empty.</p>
+          <div className="mt-10 rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 p-12 text-center dark:border-slate-700 dark:bg-slate-900/80">
+            <p className="text-base font-semibold text-slate-900 dark:text-slate-100">Your cart is empty</p>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">Browse products and tap Add — items stay here until checkout.</p>
+            <Link
+              to="/"
+              className="mt-6 inline-flex min-h-[44px] items-center justify-center rounded-full bg-green-600 px-6 text-sm font-semibold text-white hover:bg-green-700"
+            >
+              Start shopping
+            </Link>
           </div>
         ) : (
           <div className="mt-8 grid gap-6 lg:grid-cols-[1.6fr_0.9fr]">
@@ -215,12 +230,17 @@ const Cart = () => {
               </div>
 
               {!user?.email ? (
-                <Link
-                  to="/login"
-                  className="mt-6 inline-flex w-full justify-center rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold text-white"
-                >
-                  Login to Place Order
-                </Link>
+                <div className="mt-6 space-y-3">
+                  <p className="text-center text-xs text-slate-500 dark:text-slate-400">
+                    You can add items to the cart without an account. Log in only when you are ready to pay and place the order.
+                  </p>
+                  <Link
+                    to="/login?next=/cart"
+                    className="inline-flex w-full justify-center rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold text-white"
+                  >
+                    Log in to place order
+                  </Link>
+                </div>
               ) : (
                 <>
                   {unavailableItems.length > 0 && (
@@ -230,9 +250,9 @@ const Cart = () => {
                   )}
                   {!isProfileComplete && (
                     <div className="mt-6 rounded-xl bg-yellow-50 p-4 text-sm text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-200">
-                      Delivery address save karein — phir har order par dubara type nahi karna padega.
+                      Save your delivery address on Account — then you will not need to type it for every order.
                       <Link to="/account" className="mt-2 inline-block font-semibold text-green-700 underline dark:text-green-400">
-                        Account par save karein →
+                        Save on Account →
                       </Link>
                     </div>
                   )}
@@ -260,7 +280,11 @@ const Cart = () => {
                 </p>
               )}
               {status && (
-                <p className={`mt-4 text-sm ${status.includes('successfully') || status.includes('update') ? 'text-green-600' : 'text-red-600'}`}>
+                <p
+                  className={`mt-4 text-sm ${
+                    status.startsWith('Order placed') ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                  }`}
+                >
                   {status}
                 </p>
               )}

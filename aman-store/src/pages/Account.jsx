@@ -71,10 +71,10 @@ const Account = () => {
 
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
-      setLocationStatus('GPS supported nahi hai!');
+      setLocationStatus('Geolocation is not supported in this browser.');
       return;
     }
-    setLocationStatus('Location dhundh raha hai...');
+    setLocationStatus('Getting location...');
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
@@ -88,9 +88,9 @@ const Account = () => {
           const readable = data.display_name || `${latitude}, ${longitude}`;
           formDirtyRef.current = true;
           setAddress(readable);
-          setLocationStatus('Location mil gayi');
+          setLocationStatus('Address updated from location');
         } catch {
-          setLocationStatus('Location mil gayi (coordinates only)');
+          setLocationStatus('Coordinates saved (address lookup failed)');
         }
       },
       () => setLocationStatus('Location access denied'),
@@ -99,6 +99,7 @@ const Account = () => {
 
   const handleSave = async () => {
     setSaveError('');
+    setSaved(false);
     const payload = {
       name: name.trim(),
       phone: phone.trim(),
@@ -124,12 +125,15 @@ const Account = () => {
         },
       ]);
       if (error) {
-        setSaveError('Server par save nahi hua — details device par save ho gayi hain.');
+        setSaveError('Could not sync to the server. Details are saved on this device only.');
         console.error('[account] profile upsert', error);
-      } else {
-        await refreshProfile();
-        formDirtyRef.current = false;
+        return;
       }
+      await refreshProfile();
+      formDirtyRef.current = false;
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2200);
+      return;
     }
 
     setSaved(true);
@@ -161,11 +165,11 @@ const Account = () => {
           )}
           {profileComplete ? (
             <p className="mt-3 rounded-xl bg-green-50 px-3 py-2 text-sm font-medium text-green-800 dark:bg-green-900/25 dark:text-green-200">
-              Delivery details saved — orders ke liye dubara bharna zaroori nahi.
+              Delivery details are saved — you will not need to enter them again at checkout.
             </p>
           ) : (
             <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:bg-amber-900/20 dark:text-amber-100">
-              Ek baar name, 10-digit mobile aur address save kar lo — phir checkout par auto use hoga.
+              Save your name, 10-digit mobile number, and address once — checkout will use them automatically.
             </p>
           )}
         </div>
@@ -173,7 +177,7 @@ const Account = () => {
         <div className="rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-900">
           <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">Saved address</h2>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-            Google / email se naam suggest ho sakta hai; yahan se update kar sakte ho.
+            Your name may be suggested from Google; you can edit everything here.
           </p>
 
           <label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
@@ -254,7 +258,7 @@ const Account = () => {
             onClick={handleSave}
             className="mt-4 w-full rounded-xl bg-green-600 py-3 text-sm font-semibold text-white transition hover:bg-green-700"
           >
-            {saved ? 'Saved' : 'Save for future orders'}
+            {saved ? 'Profile saved' : 'Save for future orders'}
           </button>
         </div>
 

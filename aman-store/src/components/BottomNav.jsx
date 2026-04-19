@@ -13,11 +13,13 @@ const BottomNav = () => {
   );
   const cartBadgeLabel = cartItemCount > 99 ? '99+' : String(cartItemCount);
 
+  const ordersTo = user ? '/orders' : '/login?next=%2Forders';
+
   const navItems = [
     { to: '/', label: 'Home', icon: Home },
-{ to: '/search', label: 'Search', icon: Search },
+    { to: '/search', label: 'Search', icon: Search },
     { to: '/cart', label: 'Cart', icon: ShoppingCart },
-    { to: '/orders', label: 'Orders', icon: ClipboardList },
+    { to: ordersTo, label: 'Orders', icon: ClipboardList },
   ];
 
   if (user?.role === 'admin') {

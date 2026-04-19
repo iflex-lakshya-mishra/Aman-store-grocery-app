@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ChevronDown, Moon, ShoppingCart, Sun } from 'lucide-react';
 import { useCartStore } from '../../store/cartStore.js';
 import useLogoStore from '../../store/logoStore.js';
@@ -10,6 +10,8 @@ import SearchBar from '../SearchBar.jsx';
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const loginHref = `/login?next=${encodeURIComponent(`${location.pathname}${location.search}`)}`;
   const { cart } = useCartStore();
   const cartItemCount = useMemo(
     () => cart.reduce((sum, item) => sum + (item.quantity || 1), 0),
@@ -53,7 +55,7 @@ const Navbar = () => {
   const handleLogout = async () => {
     try {
       await clearCurrentUser();
-      navigate('/login');
+      navigate('/', { replace: true });
     } catch (error) {
       console.error('[auth] Logout failed', error);
     }
@@ -124,10 +126,10 @@ const Navbar = () => {
             </button>
           ) : (
             <Link
-              to="/login"
+              to={loginHref}
               className="rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
             >
-              Login
+              Log in
             </Link>
           )}
 
@@ -142,17 +144,25 @@ const Navbar = () => {
             </button>
 
             {menuOpen && (
-              <div className="absolute right-0 top-[calc(100%+8px)] min-w-40 rounded-xl bg-white p-2 shadow-sm dark:bg-slate-900">
+              <div className="absolute right-0 top-[calc(100%+8px)] z-50 min-w-44 rounded-xl border border-slate-100 bg-white p-2 shadow-lg ring-1 ring-black/5 dark:border-slate-700 dark:bg-slate-900 dark:ring-white/10">
                 <Link to="/" onClick={() => setMenuOpen(false)} className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">
                   Home
                 </Link>
                 <Link to="/category/all" onClick={() => setMenuOpen(false)} className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">
                   Categories
                 </Link>
-                <Link to="/orders" onClick={() => setMenuOpen(false)} className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">
+                <Link
+                  to={user ? '/orders' : '/login?next=%2Forders'}
+                  onClick={() => setMenuOpen(false)}
+                  className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
                   Orders
                 </Link>
-                <Link to="/account" onClick={() => setMenuOpen(false)} className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">
+                <Link
+                  to={user ? '/account' : '/login?next=%2Faccount'}
+                  onClick={() => setMenuOpen(false)}
+                  className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
                   Account
                 </Link>
                 {user?.role === 'admin' && (

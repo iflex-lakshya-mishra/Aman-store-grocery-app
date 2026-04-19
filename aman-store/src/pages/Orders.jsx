@@ -8,7 +8,7 @@ import { OrderSkeleton } from '../components/Skeletons.jsx';
 const steps = ['pending', 'approved', 'out_for_delivery', 'delivered'];
 
 const Orders = () => {
-const { user, profile } = useCurrentUser();
+  const { user, profile } = useCurrentUser();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   // data hooks
@@ -30,6 +30,16 @@ const { user, profile } = useCurrentUser();
   // load orders
 
   const getStepIndex = (status) => steps.indexOf(status);
+
+  const orderStatusBadgeClass = (status) => {
+    if (status === 'pending') {
+      return 'bg-amber-50 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200';
+    }
+    if (status === 'rejected') {
+      return 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-200';
+    }
+    return 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-200';
+  };
 
   const content = useMemo(() => {
     if (loading) {
@@ -59,8 +69,8 @@ const { user, profile } = useCurrentUser();
               </p>
             )}
           </div>
-          <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
-            {order.status}
+          <span className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${orderStatusBadgeClass(order.status)}`}>
+            {order.status.replace(/_/g, ' ')}
           </span>
         </div>
 
@@ -109,7 +119,9 @@ const { user, profile } = useCurrentUser();
           {user && (
             <div className="text-sm text-slate-600 dark:text-slate-400 space-y-1">
               <p><strong>Email:</strong> {user.email}</p>
-{user.profile?.name || user.user_metadata?.name || user.user_metadata?.display_name || 'No name set'}
+              <p>
+                {user.profile?.name || user.user_metadata?.name || user.user_metadata?.display_name || 'No name set'}
+              </p>
             </div>
           )}
           {!user?.email && (

@@ -146,9 +146,159 @@ create policy "Admin manage product images" on storage.objects
   );
 
 -- =====================================
+-- ORDERS TABLE + RLS (required for admin order list)
+-- =====================================
+-- If RLS is ON and you have ZERO policies, Supabase blocks ALL inserts/selects — table stays empty.
+-- Without "select for admin", buyers' rows exist in DB but the admin UI stays empty (RLS).
+
+create table if not exists public.orders (
+  id uuid primary key default gen_random_uuid(),
+  status text not null default 'pending',
+  items jsonb not null default '[]'::jsonb,
+  subtotal numeric(14, 2) default 0,
+  delivery_fee numeric(14, 2) default 0,
+  total_price numeric(14, 2) default 0,
+  user_name text,
+  user_mobile text,
+  user_address text,
+  user_email text,
+  lat double precision,
+  lng double precision,
+  address text,
+  delivery_name text,
+  delivery_phone text,
+  delivery_address text,
+  created_at timestamptz not null default timezone('utc'::text, now())
+);
+
+alter table public.orders add column if not exists delivery_name text;
+alter table public.orders add column if not exists delivery_phone text;
+alter table public.orders add column if not exists delivery_address text;
+alter table public.orders add column if not exists delivery_fee numeric(14, 2);
+alter table public.orders add column if not exists subtotal numeric(14, 2);
+alter table public.orders add column if not exists items jsonb;
+-- App checkout sends these too; minimal tables often omit them and inserts fail (table stays empty).
+alter table public.orders add column if not exists user_name text;
+alter table public.orders add column if not exists user_mobile text;
+alter table public.orders add column if not exists user_address text;
+alter table public.orders add column if not exists lat double precision;
+alter table public.orders add column if not exists lng double precision;
+alter table public.orders add column if not exists address text;
+alter table public.orders add column if not exists total_price numeric(14, 2);
+alter table public.orders add column if not exists status text;
+alter table public.orders add column if not exists user_email text;
+alter table public.orders add column if not exists created_at timestamptz default timezone('utc'::text, now());
+
+alter table public.orders enable row level security;
+
+-- Re-run from here if order status update/delete fails for admin (RLS): policies now allow
+-- profiles.role ilike 'admin' OR JWT email guptamartstationary911@gmail.com (same as the app).
+
+drop policy if exists "orders_select_own_or_admin" on public.orders;
+drop policy if exists "orders_insert_own_email" on public.orders;
+drop policy if exists "orders_update_admin" on public.orders;
+drop policy if exists "orders_delete_admin" on public.orders;
+
+-- Shoppers see only their rows; admins: profiles.role = 'admin' (any case) OR owner email (see useCurrentUser.js).
+create policy "orders_select_own_or_admin" on public.orders
+  for select using (
+    exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid()
+        and lower(trim(coalesce(p.role, ''))) = 'admin'
+    )
+    or lower(trim(coalesce(auth.jwt() ->> 'email', ''))) = 'guptamartstationary911@gmail.com'
+    or lower(trim(coalesce(user_email, ''))) = lower(trim(coalesce(
+      (select u.email::text from auth.users u where u.id = auth.uid()),
+      ''
+    )))
+  );
+
+-- Only insert rows tied to the signed-in user's email (prevents spoofing).
+create policy "orders_insert_own_email" on public.orders
+  for insert with check (
+    auth.uid() is not null
+    and lower(trim(coalesce(user_email, ''))) = lower(trim(coalesce(
+      (select u.email::text from auth.users u where u.id = auth.uid()),
+      ''
+    )))
+  );
+
+create policy "orders_update_admin" on public.orders
+  for update using (
+    exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid()
+        and lower(trim(coalesce(p.role, ''))) = 'admin'
+    )
+    or lower(trim(coalesce(auth.jwt() ->> 'email', ''))) = 'guptamartstationary911@gmail.com'
+  )
+  with check (
+    exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid()
+        and lower(trim(coalesce(p.role, ''))) = 'admin'
+    )
+    or lower(trim(coalesce(auth.jwt() ->> 'email', ''))) = 'guptamartstationary911@gmail.com'
+  );
+
+create policy "orders_delete_admin" on public.orders
+  for delete using (
+    exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid()
+        and lower(trim(coalesce(p.role, ''))) = 'admin'
+    )
+    or lower(trim(coalesce(auth.jwt() ->> 'email', ''))) = 'guptamartstationary911@gmail.com'
+  );
+
+create index if not exists orders_created_at_idx on public.orders (created_at desc);
+create index if not exists orders_user_email_idx on public.orders (user_email);
+
+-- =====================================
+-- SETTINGS TABLE + RLS (app reads app_logo; admin may upsert)
+-- =====================================
+-- RLS ON with no policies => logo/settings API returns nothing.
+
+create table if not exists public.settings (
+  id int primary key generated always as identity,
+  app_logo text,
+  updated_at timestamptz default timezone('utc'::text, now())
+);
+
+alter table public.settings enable row level security;
+
+drop policy if exists "settings_select_all" on public.settings;
+drop policy if exists "settings_upsert_admin" on public.settings;
+
+create policy "settings_select_all" on public.settings
+  for select using (true);
+
+create policy "settings_upsert_admin" on public.settings
+  for all
+  using (
+    exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid()
+        and lower(trim(coalesce(p.role, ''))) = 'admin'
+    )
+    or lower(trim(coalesce(auth.jwt() ->> 'email', ''))) = 'guptamartstationary911@gmail.com'
+  )
+  with check (
+    exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid()
+        and lower(trim(coalesce(p.role, ''))) = 'admin'
+    )
+    or lower(trim(coalesce(auth.jwt() ->> 'email', ''))) = 'guptamartstationary911@gmail.com'
+  );
+
+-- =====================================
 -- USAGE INSTRUCTIONS
 -- =====================================
 -- 1. Copy ALL above SQL and run in Supabase Dashboard > SQL Editor
 -- 2. Create buckets if missing: Storage > New bucket ('categories', 'product-images') - public: NO
 -- 3. Add sample data: INSERT INTO categories (name) VALUES ('Grocery'), ('Fruits');
 -- 4. Test: npm run dev → Home page should show categories from Supabase
+-- 5. If Policies page shows "no RLS policies exist" on orders: run the ORDERS TABLE + RLS block above in SQL Editor (not optional).
+-- 6. Same for settings if logo/admin save fails: run SETTINGS TABLE + RLS above.

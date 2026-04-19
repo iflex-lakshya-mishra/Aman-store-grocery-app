@@ -1,5 +1,5 @@
-﻿import { useEffect, useState } from 'react';
-import { productApi } from '../lib/shopApi.js';
+﻿import { useCallback, useEffect, useState } from 'react';
+import { productApi, bustProductsListCache } from '../lib/shopApi.js';
 
 const PRODUCTS_CACHE_KEY = 'aman-store:products-cache:v1';
 
@@ -27,13 +27,14 @@ const useProducts = () => {
   const [products, setProducts] = useState(readCachedProducts);
   const [loading, setLoading] = useState(() => readCachedProducts().length === 0);
   const [error, setError] = useState('');
+  const [reloadTick, setReloadTick] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     const hadCache = readCachedProducts().length > 0;
 
     const run = async () => {
-      if (!hadCache) setLoading(true);
+      if (!hadCache || reloadTick > 0) setLoading(true);
       setError('');
       try {
         const data = await productApi.getAll();
@@ -54,9 +55,14 @@ const useProducts = () => {
     return () => {
       cancelled = true;
     };
+  }, [reloadTick]);
+
+  const refetch = useCallback(() => {
+    bustProductsListCache();
+    setReloadTick((n) => n + 1);
   }, []);
 
-  return { products, loading, error };
+  return { products, loading, error, refetch };
 };
 
 export default useProducts;

@@ -7,6 +7,7 @@ import DocumentHead from './components/DocumentHead.jsx';
 import ToastHost from './components/ToastHost.jsx';
 import RouteLoadingBar from './components/RouteLoadingBar.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
+import { AuthProvider } from './context/AuthContext.jsx';
 import useCurrentUser from './hooks/useCurrentUser.js';
 
 const Account = lazy(() => import('./pages/Account.jsx'));
@@ -38,7 +39,7 @@ const ProtectedRoute = ({ children, requireAdmin = false, user, loading }) => {
   return children;
 };
 
-const App = () => {
+const AppShell = () => {
   const { user, loading } = useCurrentUser();
 
   return (
@@ -60,7 +61,7 @@ const App = () => {
             <Route path="/product/:id" element={<ProductPage />} />
             <Route path="/search" element={<MobileSearchPage />} />
             <Route path="/search-results" element={<SearchResultsPage />} />
-            <Route path="/cart" element={<ProtectedRoute user={user} loading={loading}><Cart /></ProtectedRoute>} />
+            <Route path="/cart" element={<Cart />} />
             <Route path="/orders" element={<ProtectedRoute user={user} loading={loading}><Orders /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute user={user} loading={loading}><Orders /></ProtectedRoute>} />
             <Route path="/account" element={<ProtectedRoute user={user} loading={loading}><Account /></ProtectedRoute>} />
@@ -81,5 +82,11 @@ const App = () => {
     </Router>
   );
 };
+
+const App = () => (
+  <AuthProvider>
+    <AppShell />
+  </AuthProvider>
+);
 
 export default App;

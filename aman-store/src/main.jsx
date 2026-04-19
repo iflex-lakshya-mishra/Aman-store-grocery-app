@@ -7,7 +7,7 @@ import './index.css';
 import { registerSW } from 'virtual:pwa-register';
 
 const updateSW = registerSW({
-  immediate: true,
+  immediate: false,
   onNeedRefresh() {
     updateSW(true);
     window.location.reload();

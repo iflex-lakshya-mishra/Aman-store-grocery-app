@@ -1,19 +1,32 @@
-﻿import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+﻿import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { signInWithGoogle } from '../lib/auth.js';
 import useCurrentUser from '../hooks/useCurrentUser.js';
 
+const sanitizeReturnPath = (raw) => {
+  if (!raw || typeof raw !== 'string') return '';
+  const t = raw.trim();
+  if (!t.startsWith('/') || t.startsWith('//')) return '';
+  return t;
+};
+
 const Login = () => {
   const { user, loading } = useCurrentUser();
+  const [searchParams] = useSearchParams();
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
+  const afterLoginPath = useMemo(
+    () => sanitizeReturnPath(searchParams.get('next')) || '/account',
+    [searchParams],
+  );
+
   useEffect(() => {
     if (!loading && user) {
-      navigate('/account');
+      navigate(afterLoginPath, { replace: true });
     }
-  }, [loading, user, navigate]);
+  }, [loading, user, navigate, afterLoginPath]);
 
   const handleGoogleLogin = async () => {
     setError('');
@@ -38,7 +51,9 @@ const Login = () => {
         <div className="rounded-2xl border border-slate-200/50 bg-white/80 p-8 shadow-xl backdrop-blur-sm">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent mb-4">Welcome</h1>
-            <p className="text-sm text-slate-500 mb-8">Sign in with Google to access your account, orders, and more</p>
+            <p className="text-sm text-slate-500 mb-8">
+              Sign in with Google to place orders, save your address, and see past orders. You can browse products without signing in.
+            </p>
           </div>
 
           {error && (
