@@ -56,7 +56,7 @@ const HeroSlider = () => {
 
         <div className="absolute inset-0 flex items-center px-4 sm:px-6">
           <div className="max-w-md text-white">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-green-100">Aman-Store</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-green-100">Gupta Mart & Stationery</p>
             <h2 className="mt-2 text-2xl font-semibold sm:text-3xl">{activeSlide.title}</h2>
             <p className="mt-2 text-xs text-green-50 sm:text-sm">{activeSlide.subtitle}</p>
             <div className="mt-4 flex items-center gap-2">
