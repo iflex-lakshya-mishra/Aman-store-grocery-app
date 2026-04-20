@@ -78,6 +78,7 @@ const BannerManager = () => {
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
       <div className="space-y-8">
+        {/*
         <div>
           <h3 className="text-lg font-semibold mb-4">App Logo</h3>
           <input
@@ -101,6 +102,7 @@ const BannerManager = () => {
             {logoSaving ? 'Saving...' : 'Update Logo'}
           </button>
         </div>
+        */}
         <form onSubmit={handleSubmit} className="rounded-3xl bg-white p-6 shadow-sm space-y-4 dark:bg-slate-900">
           <input
             value={form.title}
