@@ -197,7 +197,6 @@ const ProductManager = () => {
           <input
             type="file"
             accept="image/*"
-            capture="environment"
             onChange={(event) => {
               const selected = event.target.files?.[0];
               if (!selected) return;
