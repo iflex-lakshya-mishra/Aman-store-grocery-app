@@ -1,47 +1,57 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { bannerApi } from '../lib/shopApi.js';
 
-const slides = [
+const fallbackSlides = [
   {
     id: 1,
     title: 'Fresh daily groceries',
     subtitle: 'Quick kirana delivery at your doorstep.',
-    image:
-      'https://images.unsplash.com/photo-1506617420156-8e4536971650?auto=format&fit=crop&w=900&q=80',
+    image: 'https://images.unsplash.com/photo-1506617420156-8e4536971650?auto=format&fit=crop&w=900&q=80',
     query: 'fresh',
   },
   {
     id: 2,
     title: 'Essentials at better prices',
     subtitle: 'Smart pantry shopping with clean discounts.',
-    image:
-      'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=900&q=80',
+    image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=900&q=80',
     query: 'discount',
   },
   {
     id: 3,
     title: 'Snacks and staples',
     subtitle: 'From daily needs to favorite treats.',
-    image:
-      'https://images.unsplash.com/photo-1579113800032-c38bd7635818?auto=format&fit=crop&w=900&q=80',
+    image: 'https://images.unsplash.com/photo-1579113800032-c38bd7635818?auto=format&fit=crop&w=900&q=80',
     query: 'snacks',
   },
 ];
-// compact slides
 
 const HeroSlider = () => {
+  const [slides, setSlides] = useState(fallbackSlides);
   const [activeIndex, setActiveIndex] = useState(0);
-  // slider state
+
+  useEffect(() => {
+    bannerApi.getAll().then((data) => {
+      if (data && data.length > 0) {
+        setSlides(data.map((b) => ({
+          id: b.id,
+          title: b.title || 'Gupta Mart',
+          subtitle: '',
+          image: b.image,
+          query: b.link?.replace('/', '') || 'fresh',
+        })));
+      }
+    });
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % slides.length);
     }, 3500);
     return () => clearInterval(timer);
-  }, []);
-  // auto play
+  }, [slides.length]);
 
-  const activeSlide = useMemo(() => slides[activeIndex], [activeIndex]);
+  const activeSlide = useMemo(() => slides[activeIndex], [activeIndex, slides]);
 
   return (
     <section className="container-fixed mt-6">
@@ -58,7 +68,9 @@ const HeroSlider = () => {
           <div className="max-w-md text-white">
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-green-100">Gupta Mart & Stationery</p>
             <h2 className="mt-2 text-2xl font-semibold sm:text-3xl">{activeSlide.title}</h2>
-            <p className="mt-2 text-xs text-green-50 sm:text-sm">{activeSlide.subtitle}</p>
+            {activeSlide.subtitle && (
+              <p className="mt-2 text-xs text-green-50 sm:text-sm">{activeSlide.subtitle}</p>
+            )}
             <div className="mt-4 flex items-center gap-2">
               <Link
                 to={`/search?q=${encodeURIComponent(activeSlide.query)}`}
@@ -93,7 +105,5 @@ const HeroSlider = () => {
     </section>
   );
 };
-// hero slider
 
 export default HeroSlider;
-
