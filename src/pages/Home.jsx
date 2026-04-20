@@ -1,4 +1,4 @@
-﻿import { useMemo } from 'react';
+﻿import { useMemo, useState } from 'react';
 import useCurrentUser from '../hooks/useCurrentUser.js';
 import { Link } from 'react-router-dom';
 import useProducts from '../hooks/useProducts.js';
@@ -13,6 +13,7 @@ const Home = () => {
   const { user } = useCurrentUser();
   const { products, loading } = useProducts();
   const { categories, loading: categoryLoading } = useCategories();
+  const [showAllCategories, setShowAllCategories] = useState(false);
   const addToCart = useCartStore((state) => state.addToCart);
   // data hooks
 
@@ -21,6 +22,10 @@ const Home = () => {
   const discounts = useMemo(
     () => products.filter((item) => Number(item.discount) > 0).slice(0, 6),
     [products],
+  );
+  const visibleCategories = useMemo(
+    () => (showAllCategories ? categories : categories.slice(0, 4)),
+    [categories, showAllCategories],
   );
   // derived lists
 
@@ -35,14 +40,20 @@ const Home = () => {
             <p className="text-xs uppercase tracking-[0.3em] text-green-600">Categories</p>
             <h2 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">Shop by category</h2>
           </div>
-          <Link to="/category/all" className="text-sm font-semibold text-green-700">
-            View All
-          </Link>
+          {categories.length > 4 && (
+            <button
+              type="button"
+              onClick={() => setShowAllCategories((prev) => !prev)}
+              className="text-sm font-semibold text-green-700"
+            >
+              {showAllCategories ? 'Show Less' : 'View All'}
+            </button>
+          )}
         </div>
-        <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="mt-6 grid grid-cols-4 gap-3 sm:gap-4">
           {categoryLoading
-            ? [...Array(6)].map((_, index) => <CategorySkeleton key={index} />)
-            : categories.map((category) => <CategoryCard key={category.id} category={category} />)}
+            ? [...Array(4)].map((_, index) => <CategorySkeleton key={index} />)
+            : visibleCategories.map((category) => <CategoryCard key={category.id} category={category} />)}
         </div>
       </section>
 

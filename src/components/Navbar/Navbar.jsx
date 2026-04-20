@@ -72,7 +72,7 @@ const Navbar = () => {
           <img
             src={logo}
             alt="Gupta Mart & Stationery"
-            className="h-10 w-auto object-contain"
+            className="h-8 w-auto max-w-32 shrink-0 object-contain sm:h-10"
             onError={(e) => e.currentTarget.src = '/Applogo.png'}
           />
         </Link>
