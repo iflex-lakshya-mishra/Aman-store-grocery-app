@@ -1,47 +1,36 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-
-const slides = [
-  {
-    id: 1,
-    title: 'Fresh daily groceries',
-    subtitle: 'Quick kirana delivery at your doorstep.',
-    image:
-      'https://images.unsplash.com/photo-1506617420156-8e4536971650?auto=format&fit=crop&w=960&q=70',
-    query: 'fresh',
-  },
-  {
-    id: 2,
-    title: 'Essentials at better prices',
-    subtitle: 'Smart pantry shopping with clean discounts.',
-    image:
-      'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=960&q=70',
-    query: 'discount',
-  },
-  {
-    id: 3,
-    title: 'Snacks and staples',
-    subtitle: 'From daily needs to favorite treats.',
-    image:
-      'https://images.unsplash.com/photo-1579113800032-c38bd7635818?auto=format&fit=crop&w=960&q=70',
-    query: 'snacks',
-  },
-];
-// compact slides
+import { bannerApi } from '../lib/shopApi.js';
 
 const HeroSlider = () => {
+  const [slides, setSlides] = useState([]);
   const [activeIndex, setActiveIndex] = useState(0);
-  // slider state
 
   useEffect(() => {
+    bannerApi.getAll().then((data) => {
+      if (data && data.length > 0) {
+        setSlides(data.map((b) => ({
+          id: b.id,
+          title: b.title || 'Gupta Mart & Stationery',
+          subtitle: '',
+          image: b.image,
+          query: b.link?.replace('/', '') || 'fresh',
+        })));
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!slides.length) return;
     const timer = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % slides.length);
     }, 3500);
     return () => clearInterval(timer);
-  }, []);
-  // auto play
+  }, [slides.length]);
 
-  const activeSlide = useMemo(() => slides[activeIndex], [activeIndex]);
+  const activeSlide = useMemo(() => slides[activeIndex], [activeIndex, slides]);
+
+  if (!slides.length) return null;
 
   return (
     <section className="container-fixed mx-auto mt-6 max-w-5xl">
@@ -50,17 +39,17 @@ const HeroSlider = () => {
           src={activeSlide.image}
           alt={activeSlide.title}
           className="h-56 max-h-72 w-full object-cover sm:h-64 lg:h-72"
-          decoding="async"
-          fetchPriority="high"
         />
 
         <div className="absolute inset-0 bg-linear-to-r from-black/60 via-black/25 to-transparent" />
 
         <div className="absolute inset-0 flex items-center px-4 sm:px-6">
           <div className="max-w-md text-white">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-green-100">Gupta Mart &amp; Stationery</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-green-100">Gupta Mart & Stationery</p>
             <h2 className="mt-2 text-2xl font-semibold sm:text-3xl">{activeSlide.title}</h2>
-            <p className="mt-2 text-xs text-green-50 sm:text-sm">{activeSlide.subtitle}</p>
+            {activeSlide.subtitle && (
+              <p className="mt-2 text-xs text-green-50 sm:text-sm">{activeSlide.subtitle}</p>
+            )}
             <div className="mt-4 flex items-center gap-2">
               <Link
                 to={`/search?q=${encodeURIComponent(activeSlide.query)}`}
@@ -95,7 +84,6 @@ const HeroSlider = () => {
     </section>
   );
 };
-// hero slider
 
 export default HeroSlider;
 
