@@ -4,6 +4,15 @@ import useProducts from '../hooks/useProducts.js';
 import { getSearchSuggestions, normalizeSearchQuery } from '../lib/searchUtils.js';
 import { Search } from 'lucide-react';
 
+const PLACEHOLDERS = [
+  'Maggi, Biscuit, Soda...',
+  'Doodh, Bread, Butter...',
+  'Chips, Namkeen, Snacks...',
+  'Rice, Dal, Atta...',
+  'Soap, Shampoo, Toothpaste...',
+  'Cold Drink, Juice, Water...',
+];
+
 const DEBOUNCE_MS = 140;
 const MIN_CHARS = 1;
 
@@ -14,6 +23,7 @@ const SearchBar = ({ className = '' }) => {
   const [debounced, setDebounced] = useState('');
   const [open, setOpen] = useState(false);
   const [highlight, setHighlight] = useState(-1);
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const wrapRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -21,6 +31,14 @@ const SearchBar = ({ className = '' }) => {
     const t = setTimeout(() => setDebounced(queryText), DEBOUNCE_MS);
     return () => clearTimeout(t);
   }, [queryText]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPlaceholderIndex((prev) => (prev + 1) % PLACEHOLDERS.length);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const trimmed = normalizeSearchQuery(debounced);
   const suggestions = useMemo(() => {
@@ -101,7 +119,7 @@ const SearchBar = ({ className = '' }) => {
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}
-          placeholder="Search — try 1 letter, typos OK"
+          placeholder={PLACEHOLDERS[placeholderIndex]}
           className="h-11 w-full rounded-xl border border-transparent bg-slate-100 py-2 pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-green-200 focus:ring-2 focus:ring-green-100 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-green-800 dark:focus:ring-green-900/40"
           aria-autocomplete="list"
           aria-expanded={open && suggestions.length > 0}
