@@ -5,6 +5,7 @@ import { bannerApi } from '../lib/shopApi.js';
 const HeroSlider = () => {
   const [slides, setSlides] = useState([]);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   useEffect(() => {
     bannerApi.getAll().then((data) => {
@@ -30,15 +31,25 @@ const HeroSlider = () => {
 
   const activeSlide = useMemo(() => slides[activeIndex], [activeIndex, slides]);
 
+  useEffect(() => {
+    setImageLoaded(false);
+  }, [activeSlide?.image]);
+
   if (!slides.length) return null;
 
   return (
     <section className="container-fixed mx-auto mt-6 max-w-5xl">
       <div className="relative overflow-hidden rounded-xl shadow-sm">
+        {!imageLoaded && <div className="absolute inset-0 z-0 bg-slate-800" aria-hidden />}
         <img
           src={activeSlide.image}
           alt={activeSlide.title}
-          className="h-56 max-h-72 w-full object-cover sm:h-64 lg:h-72"
+          loading="eager"
+          fetchPriority="high"
+          onLoad={() => setImageLoaded(true)}
+          className={`h-56 max-h-72 w-full object-cover transition-opacity duration-500 sm:h-64 lg:h-72 ${
+            imageLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
         />
 
         <div className="absolute inset-0 bg-linear-to-r from-black/60 via-black/25 to-transparent" />
