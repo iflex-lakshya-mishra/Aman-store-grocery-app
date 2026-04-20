@@ -44,12 +44,12 @@ const HeroSlider = () => {
   const activeSlide = useMemo(() => slides[activeIndex], [activeIndex]);
 
   return (
-    <section className="container-fixed mt-6">
+    <section className="container-fixed mx-auto mt-6 max-w-5xl">
       <div className="relative overflow-hidden rounded-xl shadow-sm">
         <img
           src={activeSlide.image}
           alt={activeSlide.title}
-          className="h-56 w-full object-cover sm:h-64 lg:h-72"
+          className="h-56 max-h-72 w-full object-cover sm:h-64 lg:h-72"
           decoding="async"
           fetchPriority="high"
         />
