@@ -168,13 +168,17 @@ const Navbar = () => {
                     Admin dashboard
                   </Link>
                 )}
-                <Link
-                  to="/admin/login"
-                  onClick={() => setMenuOpen(false)}
-                  className="block rounded-lg px-3 py-2 text-xs text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
-                >
-                  Staff / admin sign-in
-                </Link>
+                {/*
+                {user?.role === 'admin' && (
+                  <Link
+                    to="/admin/login"
+                    onClick={() => setMenuOpen(false)}
+                    className="block rounded-lg px-3 py-2 text-xs text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+                  >
+                    Staff / admin sign-in
+                  </Link>
+                )}
+                */}
               </div>
             )}
           </div>

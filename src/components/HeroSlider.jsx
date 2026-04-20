@@ -2,56 +2,56 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { bannerApi } from '../lib/shopApi.js';
 
-const fallbackSlides = [
-  {
-    id: 1,
-    title: 'Fresh daily groceries',
-    subtitle: 'Quick kirana delivery at your doorstep.',
-    image: 'https://images.unsplash.com/photo-1506617420156-8e4536971650?auto=format&fit=crop&w=900&q=80',
-    query: 'fresh',
-  },
-  {
-    id: 2,
-    title: 'Essentials at better prices',
-    subtitle: 'Smart pantry shopping with clean discounts.',
-    image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=900&q=80',
-    query: 'discount',
-  },
-  {
-    id: 3,
-    title: 'Snacks and staples',
-    subtitle: 'From daily needs to favorite treats.',
-    image: 'https://images.unsplash.com/photo-1579113800032-c38bd7635818?auto=format&fit=crop&w=900&q=80',
-    query: 'snacks',
-  },
-];
+const fallbackSlides = [];
 
 const HeroSlider = () => {
   const [slides, setSlides] = useState(fallbackSlides);
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
-    bannerApi.getAll().then((data) => {
-      if (data && data.length > 0) {
-        setSlides(data.map((b) => ({
-          id: b.id,
-          title: b.title || 'Gupta Mart',
-          subtitle: '',
-          image: b.image,
-          query: b.link?.replace('/', '') || 'fresh',
-        })));
-      }
-    });
+    bannerApi
+      .getAll()
+      .then((data) => {
+        if (data && data.length > 0) {
+          setSlides(data.map((b) => ({
+            id: b.id,
+            title: b.title || 'Gupta Mart',
+            subtitle: '',
+            image: b.image,
+            query: b.link?.replace('/', '') || 'fresh',
+          })));
+          return;
+        }
+
+        setSlides([]);
+      })
+      .catch(() => {
+        setSlides([]);
+      });
   }, []);
 
   useEffect(() => {
+    if (slides.length <= 1) return;
+
     const timer = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % slides.length);
     }, 3500);
     return () => clearInterval(timer);
   }, [slides.length]);
 
-  const activeSlide = useMemo(() => slides[activeIndex], [activeIndex, slides]);
+  useEffect(() => {
+    if (!slides.length) {
+      setActiveIndex(0);
+      return;
+    }
+    if (activeIndex >= slides.length) setActiveIndex(0);
+  }, [activeIndex, slides.length]);
+
+  const activeSlide = useMemo(() => slides[activeIndex] || null, [activeIndex, slides]);
+
+  if (!activeSlide) {
+    return null;
+  }
 
   return (
     <section className="container-fixed mt-6">
