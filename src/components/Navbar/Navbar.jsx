@@ -68,11 +68,11 @@ const Navbar = () => {
     <nav className="sticky top-0 z-50 bg-white/70 py-3 shadow-sm backdrop-blur dark:bg-slate-950/70">
       <div className="container-fixed flex flex-wrap items-center gap-3">
 
-        <Link to="/" className="flex items-center gap-2">
+        <Link to="/" className="flex h-10 items-center gap-2">
           <img
             src={logo}
             alt="Gupta Mart & Stationery"
-            className="h-8 w-auto max-w-32 shrink-0 object-contain sm:h-10"
+            className="block h-10 w-auto shrink-0 self-center object-contain"
             onError={(e) => e.currentTarget.src = '/Applogo.png'}
           />
         </Link>

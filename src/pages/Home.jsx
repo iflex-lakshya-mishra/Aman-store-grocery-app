@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from 'react';
+﻿import { useMemo, useRef } from 'react';
 import useCurrentUser from '../hooks/useCurrentUser.js';
 import { Link } from 'react-router-dom';
 import useProducts from '../hooks/useProducts.js';
@@ -6,14 +6,13 @@ import useCategories from '../hooks/useCategories.js';
 import { useCartStore } from '../store/cartStore.js';
 import HeroSlider from '../components/HeroSlider.jsx';
 import ProductCard from '../components/ProductCard.jsx';
-import CategoryCard from '../components/CategoryCard.jsx';
-import { ProductCardSkeleton, CategorySkeleton } from '../components/Skeletons.jsx';
+import { ProductCardSkeleton } from '../components/Skeletons.jsx';
 
 const Home = () => {
   const { user } = useCurrentUser();
   const { products, loading } = useProducts();
   const { categories, loading: categoryLoading } = useCategories();
-  const [showAllCategories, setShowAllCategories] = useState(false);
+  const categoriesRowRef = useRef(null);
   const addToCart = useCartStore((state) => state.addToCart);
   // data hooks
 
@@ -23,10 +22,12 @@ const Home = () => {
     () => products.filter((item) => Number(item.discount) > 0).slice(0, 6),
     [products],
   );
-  const visibleCategories = useMemo(
-    () => (showAllCategories ? categories : categories.slice(0, 4)),
-    [categories, showAllCategories],
-  );
+
+  const scrollCategories = (direction) => {
+    if (!categoriesRowRef.current) return;
+    const delta = direction === 'left' ? -200 : 200;
+    categoriesRowRef.current.scrollBy({ left: delta, behavior: 'smooth' });
+  };
   // derived lists
 
   return (
@@ -40,20 +41,52 @@ const Home = () => {
             <p className="text-xs uppercase tracking-[0.3em] text-green-600">Categories</p>
             <h2 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">Shop by category</h2>
           </div>
-          {categories.length > 4 && (
+          <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setShowAllCategories((prev) => !prev)}
-              className="text-sm font-semibold text-green-700"
+              onClick={() => scrollCategories('left')}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+              aria-label="Scroll categories left"
             >
-              {showAllCategories ? 'Show Less' : 'View All'}
+              &lt;
             </button>
-          )}
+            <button
+              type="button"
+              onClick={() => scrollCategories('right')}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+              aria-label="Scroll categories right"
+            >
+              &gt;
+            </button>
+          </div>
         </div>
-        <div className="mt-6 grid grid-cols-4 gap-3 sm:gap-4">
+        <div
+          ref={categoriesRowRef}
+          className="mt-6 flex gap-4 overflow-x-auto scroll-smooth pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        >
           {categoryLoading
-            ? [...Array(4)].map((_, index) => <CategorySkeleton key={index} />)
-            : visibleCategories.map((category) => <CategoryCard key={category.id} category={category} />)}
+            ? [...Array(8)].map((_, index) => (
+                <div key={index} className="w-20 shrink-0 animate-pulse text-center">
+                  <div className="mx-auto h-16 w-16 rounded-full bg-slate-200 dark:bg-slate-700" />
+                  <div className="mx-auto mt-2 h-3 w-14 rounded bg-slate-200 dark:bg-slate-700" />
+                </div>
+              ))
+            : categories.map((category) => (
+                <Link
+                  key={category.id}
+                  to={`/category/${encodeURIComponent(category.name)}`}
+                  className="w-20 shrink-0 text-center"
+                >
+                  <img
+                    src={category.image}
+                    alt={category.name}
+                    className="mx-auto h-16 w-16 rounded-full object-cover"
+                  />
+                  <p className="mt-2 line-clamp-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
+                    {category.name}
+                  </p>
+                </Link>
+              ))}
         </div>
       </section>
 
