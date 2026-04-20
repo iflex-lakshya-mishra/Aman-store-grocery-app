@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 
 export const defaultSettings = {
-  storeName: "Aman Store",
+  storeName: "Gupta Mart & Stationery",
   shippingFee: 0,
   currency: "INR"
 };
