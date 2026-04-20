@@ -2,11 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { bannerApi } from '../lib/shopApi.js';
 
-const defaultSlides = [
-  { id: 'default-1', title: 'Snacks & Drinks', image: '/banners/banner2.jpg', query: 'snacks' },
-  { id: 'default-2', title: 'Daily Essentials', image: '/banners/banner3.jpg', query: 'fresh' },
-  { id: 'default-3', title: 'Chocolates', image: '/banners/banner4.jpg', query: 'chocolate' },
-];
+const defaultSlides = [];
 
 const HeroSlider = () => {
   const [slides, setSlides] = useState([]);
