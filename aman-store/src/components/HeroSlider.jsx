@@ -2,6 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { bannerApi } from '../lib/shopApi.js';
 
+const defaultSlides = [
+  { id: 'default-1', title: 'Snacks & Drinks', image: '/banners/banner2.jpg', query: 'snacks' },
+  { id: 'default-2', title: 'Daily Essentials', image: '/banners/banner3.jpg', query: 'fresh' },
+  { id: 'default-3', title: 'Chocolates', image: '/banners/banner4.jpg', query: 'chocolate' },
+];
+
 const HeroSlider = () => {
   const [slides, setSlides] = useState([]);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -9,15 +15,15 @@ const HeroSlider = () => {
 
   useEffect(() => {
     bannerApi.getAll().then((data) => {
-      if (data && data.length > 0) {
-        setSlides(data.map((b) => ({
+      const supabaseBanners = (data || []).map((b) => ({
           id: b.id,
           title: b.title || 'Gupta Mart & Stationery',
           subtitle: '',
           image: b.image,
           query: b.link?.replace('/', '') || 'fresh',
-        })));
-      }
+        }));
+
+      setSlides([...defaultSlides, ...supabaseBanners]);
     });
   }, []);
 
