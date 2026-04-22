@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
 
-const STORE_PHONE = import.meta.env.VITE_STORE_PHONE || '+919876543210';
+const STORE_PHONE = import.meta.env.VITE_STORE_PHONE || '+917905217370';
 const STORE_EMAIL = import.meta.env.VITE_STORE_EMAIL || 'support@guptamartstationery.in';
 // fallback contact
-const STORE_ADDRESS = 'Varanasi, Uttar Pradesh';
+const STORE_ADDRESS = 'Ashapur Chandra chauraha balua road near railway crossing varanasi uttar pradesh';
 
 const Footer = () => {
   return (

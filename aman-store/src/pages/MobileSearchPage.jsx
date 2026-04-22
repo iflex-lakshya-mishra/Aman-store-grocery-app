@@ -14,7 +14,7 @@ const MobileSearchPage = () => (
     <div className="container-fixed px-3 py-4">
       <SearchBar className="w-full" />
       <p className="mt-4 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-        Type a few letters — suggestions appear as you type. Spelling does not need to be perfect.
+        Discover groceries faster than ever
       </p>
     </div>
   </div>
